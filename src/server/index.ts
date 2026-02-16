@@ -8,6 +8,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { initializeSchema } from './db.js';
+import { seedDemoData } from './seed-data.js';
 import { logger } from './logger.js';
 
 
@@ -68,6 +69,7 @@ app.use(
 function start(): void {
   // Initialize database
   initializeSchema();
+  seedDemoData();
 
   app.listen(PORT, () => {
     logger.info({ port: PORT }, '🏛️ AI Agora server started');
