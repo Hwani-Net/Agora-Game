@@ -4,6 +4,7 @@ import { api } from '../api.js';
 interface Stock {
   id: string;
   agent_id: string;
+  agent_name?: string;
   current_price: number;
   total_shares: number;
   available_shares: number;
@@ -95,7 +96,7 @@ export default function MarketPage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600 }}>🤖 Agent #{stock.agent_id.slice(0, 6)}</div>
+                  <div style={{ fontWeight: 600 }}>🤖 {stock.agent_name || `Agent #${stock.agent_id.slice(0, 8)}`}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     {stock.total_shares.toLocaleString()} shares
                   </div>

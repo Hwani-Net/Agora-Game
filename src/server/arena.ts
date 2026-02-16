@@ -341,7 +341,20 @@ export function getDebateById(id: string): Debate | null {
 export function getRecentDebates(limit: number = 10): Debate[] {
   const db = getDb();
   const rows = db
-    .prepare("SELECT * FROM debates WHERE status = 'completed' ORDER BY completed_at DESC LIMIT ?")
+    .prepare(
+      `SELECT d.*,
+              a1.name as agent1_name,
+              a2.name as agent2_name,
+              CASE WHEN d.winner_id IS NOT NULL
+                   THEN (SELECT name FROM agents WHERE id = d.winner_id)
+                   ELSE NULL END as winner_name,
+              COALESCE(d.completed_at, d.started_at) as created_at
+       FROM debates d
+       LEFT JOIN agents a1 ON d.agent1_id = a1.id
+       LEFT JOIN agents a2 ON d.agent2_id = a2.id
+       WHERE d.status = 'completed'
+       ORDER BY d.completed_at DESC LIMIT ?`,
+    )
     .all(limit) as (Omit<Debate, 'rounds'> & { rounds: string })[];
   return rows.map((r) => ({ ...r, rounds: JSON.parse(r.rounds) as DebateRound[] }));
 }

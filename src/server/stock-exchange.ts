@@ -276,9 +276,16 @@ export function getStockByAgentId(agentId: string): AgentStock | null {
   return (db.prepare('SELECT * FROM agent_stocks WHERE agent_id = ?').get(agentId) as AgentStock | undefined) ?? null;
 }
 
-export function getAllStocks(): AgentStock[] {
+export function getAllStocks(): (AgentStock & { agent_name?: string })[] {
   const db = getDb();
-  return db.prepare('SELECT * FROM agent_stocks ORDER BY market_cap DESC').all() as AgentStock[];
+  return db
+    .prepare(
+      `SELECT s.*, a.name as agent_name
+       FROM agent_stocks s
+       LEFT JOIN agents a ON s.agent_id = a.id
+       ORDER BY s.market_cap DESC`,
+    )
+    .all() as (AgentStock & { agent_name?: string })[];
 }
 
 export function getUserPortfolio(userId: string): (StockOwnership & { current_price: number; agent_name: string })[] {

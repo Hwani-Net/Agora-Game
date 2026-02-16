@@ -328,8 +328,8 @@ export function seedDemoData(): void {
   );
 
   const insertDebate = db.prepare(
-    `INSERT INTO debates (id, topic, agent1_id, agent2_id, rounds, judge_reasoning, winner_id, elo_change_winner, elo_change_loser, status, completed_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+    `INSERT INTO debates (id, topic, agent1_id, agent2_id, rounds, judge_reasoning, winner_id, elo_change_winner, elo_change_loser, status, started_at, completed_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '-1 hour'), datetime('now'))`,
   );
 
   const insertStock = db.prepare(
