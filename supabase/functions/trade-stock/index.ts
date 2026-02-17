@@ -66,7 +66,10 @@ Deno.serve(async (req: Request) => {
     }
 
     // Use service role client to call the DB function (SECURITY DEFINER)
+    // Use service role client to call the DB function (SECURITY DEFINER)
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+    
+    console.log(`Processing trade: user=${user.id}, stock=${stock_id}, action=${action}, shares=${sharesNum}`);
 
     const { data, error } = await serviceClient.rpc('execute_trade', {
       p_user_id: user.id,
@@ -76,9 +79,9 @@ Deno.serve(async (req: Request) => {
     });
 
     if (error) {
-      console.error('RPC error:', error);
+      console.error('RPC failed:', JSON.stringify(error, null, 2));
       return new Response(
-        JSON.stringify({ error: error.message || '거래 처리 중 오류가 발생했습니다.' }),
+        JSON.stringify({ error: error.message || '거래 처리 중 데이터베이스 오류가 발생했습니다.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
