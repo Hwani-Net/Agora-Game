@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuthContext } from './AuthContext.js';
 import { ToastProvider } from './ToastContext.js';
+import { ThemeProvider, useTheme } from './ThemeContext.js';
 import HomePage from './pages/HomePage.js';
 import AgentsPage from './pages/AgentsPage.js';
 import ArenaPage from './pages/ArenaPage.js';
@@ -9,10 +11,101 @@ import MarketPage from './pages/MarketPage.js';
 import QuestsPage from './pages/QuestsPage.js';
 import DebateDetailPage from './pages/DebateDetailPage.js';
 import AgentDetailPage from './pages/AgentDetailPage.js';
+import CreateAgentPage from './pages/CreateAgentPage.js';
 import LiveDebatePage from './pages/LiveDebatePage.js';
 
+// ─── Theme Toggle ───
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const icons: Record<string, string> = { dark: '🌙', light: '☀️', system: '🖥️' };
+  const next: Record<string, 'dark' | 'light' | 'system'> = { dark: 'light', light: 'system', system: 'dark' };
+
+  return (
+    <button
+      className="btn btn--ghost btn--sm theme-toggle-btn"
+      onClick={() => setTheme(next[theme])}
+      title={theme}
+    >
+      {icons[theme]}
+    </button>
+  );
+}
+
+// ─── Language Toggle ───
+
+function LangToggle() {
+  const { i18n } = useTranslation();
+  const next = i18n.language.startsWith('ko') ? 'en' : 'ko';
+
+  return (
+    <button
+      className="btn btn--ghost btn--sm"
+      onClick={() => i18n.changeLanguage(next)}
+      style={{ fontWeight: 700, fontSize: '0.75rem', padding: '6px 10px' }}
+    >
+      {i18n.language.startsWith('ko') ? 'KO' : 'EN'}
+    </button>
+  );
+}
+
+// ─── Login Dropdown ───
+
+function LoginActions() {
+  const { t } = useTranslation();
+  const { user, login, loginWithGoogle, logout, loading } = useAuthContext();
+  const [open, setOpen] = useState(false);
+
+  if (loading) {
+    return <div className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />;
+  }
+
+  if (user) {
+    return (
+      <button className="btn btn--ghost btn--sm" onClick={logout}>
+        {user.name} ✕
+      </button>
+    );
+  }
+
+  return (
+    <div className="login-dropdown" style={{ position: 'relative' }}>
+      <button
+        className="btn btn--primary btn--sm"
+        onClick={() => setOpen((p) => !p)}
+      >
+        {t('nav.login')}
+      </button>
+      {open && (
+        <div className="login-dropdown__menu">
+          <button
+            className="login-dropdown__item"
+            onClick={() => { loginWithGoogle(); setOpen(false); }}
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" style={{ flexShrink: 0 }}>
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            {t('nav.google_login')}
+          </button>
+          <button
+            className="login-dropdown__item"
+            onClick={() => { login('Demo User'); setOpen(false); }}
+          >
+            <span style={{ fontSize: 18, flexShrink: 0 }}>👤</span>
+            {t('nav.demo_login')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AppContent() {
-  const { user, login, logout, loading } = useAuthContext();
+  const { t } = useTranslation();
+  const { user } = useAuthContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,7 +125,7 @@ function AppContent() {
         <button
           className="navbar__toggle"
           onClick={() => setMenuOpen((prev) => !prev)}
-          aria-label="메뉴 열기"
+          aria-label={menuOpen ? t('nav.menu_close') : t('nav.menu_open')}
         >
           <span />
           <span />
@@ -40,11 +133,11 @@ function AppContent() {
         </button>
         <ul className={`navbar__nav ${menuOpen ? 'navbar__nav--open' : ''}`}>
           {[
-            { key: 'home', label: '홈', to: '/' },
-            { key: 'agents', label: '에이전트', to: '/agents' },
-            { key: 'arena', label: '아레나', to: '/arena' },
-            { key: 'market', label: '주식시장', to: '/market' },
-            { key: 'quests', label: '퀘스트', to: '/quests' },
+            { key: 'home', label: t('nav.home'), to: '/' },
+            { key: 'agents', label: t('nav.agents'), to: '/agents' },
+            { key: 'arena', label: t('nav.arena'), to: '/arena' },
+            { key: 'market', label: t('nav.market'), to: '/market' },
+            { key: 'quests', label: t('nav.quests'), to: '/quests' },
           ].map((item) => (
             <li key={item.key}>
               <NavLink
@@ -58,26 +151,15 @@ function AppContent() {
           ))}
         </ul>
         <div className="navbar__actions">
+          <LangToggle />
+          <ThemeToggle />
           {user && (
             <div className="navbar__gold">
               <span>💰</span>
-              <span>{user.gold_balance.toLocaleString()} G</span>
+              <span>{user.gold_balance.toLocaleString()} {t('nav.gold')}</span>
             </div>
           )}
-          {loading ? (
-            <div className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
-          ) : user ? (
-            <button className="btn btn--ghost btn--sm" onClick={logout}>
-              {user.name} ✕
-            </button>
-          ) : (
-            <button
-              className="btn btn--primary btn--sm"
-              onClick={() => login('Demo User')}
-            >
-              데모 로그인
-            </button>
-          )}
+          <LoginActions />
         </div>
       </nav>
 
@@ -88,6 +170,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/agents" element={<AgentsPage />} />
+          <Route path="/agents/create" element={<CreateAgentPage />} />
           <Route path="/agents/:agentId" element={<AgentDetailPage />} />
           <Route path="/arena" element={<ArenaPage />} />
           <Route path="/arena/live" element={<LiveDebatePage />} />
@@ -102,12 +185,14 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </ToastProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </ToastProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

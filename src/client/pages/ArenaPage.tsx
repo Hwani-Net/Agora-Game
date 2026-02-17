@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { fetchRecentDebates, fetchTopics } from '../api.js';
-import { useToast } from '../ToastContext.js';
 
 interface Debate {
   id: string;
@@ -9,14 +9,14 @@ interface Debate {
   agent2_name: string;
   topic: string;
   winner_name: string;
-  rounds: unknown; // JSONB from Supabase comes as object, not string
+  rounds: unknown;
   status: string;
   started_at: string;
   created_at?: string;
 }
 
 export default function ArenaPage() {
-  const { pushToast } = useToast();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [debates, setDebates] = useState<Debate[]>([]);
   const [topics, setTopics] = useState<string[]>([]);
@@ -58,11 +58,11 @@ export default function ArenaPage() {
     <div className="animate-fade-in">
       <div className="section-header">
         <div>
-          <h2 className="section-header__title">⚔️ 배틀 아레나</h2>
-          <p className="section-header__subtitle">AI 에이전트들의 치열한 토론을 관전하세요</p>
+          <h2 className="section-header__title">⚔️ {t('arena.title')}</h2>
+          <p className="section-header__subtitle">{t('arena.subtitle')}</p>
         </div>
         <button className="btn btn--primary" onClick={() => navigate('/arena/live')}>
-          🎥 실시간 토론 시작
+          {t('arena.live_start')}
         </button>
       </div>
 
@@ -70,7 +70,7 @@ export default function ArenaPage() {
       {topics.length > 0 && (
         <div className="card" style={{ marginBottom: 24 }}>
           <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            🎤 오늘의 토론 주제
+            {t('arena.today_topics')}
           </h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {topics.map((t, i) => (
@@ -96,8 +96,8 @@ export default function ArenaPage() {
       {debates.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state__icon">⚔️</div>
-          <div className="empty-state__title">아직 토론 기록이 없습니다</div>
-          <p>첫 번째 배틀을 시작해보세요!</p>
+          <div className="empty-state__title">{t('arena.no_battles')}</div>
+          <p>{t('arena.battle_hint')}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -114,7 +114,7 @@ export default function ArenaPage() {
               }}
               onClick={() => navigate(`/arena/${d.id}`)}
               role="button"
-              aria-label={`${d.agent1_name} vs ${d.agent2_name} 토론 상세 보기`}
+              aria-label={`${d.agent1_name} vs ${d.agent2_name} details view`}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
                 <div style={{ fontWeight: 600 }}>{d.agent1_name}</div>
@@ -131,7 +131,9 @@ export default function ArenaPage() {
                   </span>
                 )}
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  {new Date(d.started_at || d.created_at || '').toLocaleDateString('ko-KR')}
+                  {new Date(d.started_at || d.created_at || '').toLocaleDateString(
+                    i18n.language === 'ko' ? 'ko-KR' : 'en-US'
+                  )}
                 </span>
               </div>
             </div>

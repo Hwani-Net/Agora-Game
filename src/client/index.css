@@ -55,6 +55,118 @@
   --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ─── Light Theme ─── */
+
+[data-theme="light"] {
+  --bg-primary: #f5f5fa;
+  --bg-secondary: #eeeef4;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --bg-glass-hover: rgba(245, 245, 250, 0.92);
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --text-accent: #6366f1;
+
+  --border: rgba(99, 102, 241, 0.12);
+  --border-hover: rgba(99, 102, 241, 0.3);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.08);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .card {
+  background: var(--bg-card);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .navbar {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom-color: rgba(99, 102, 241, 0.08);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .btn--ghost {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .btn--ghost:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .wizard-card,
+[data-theme="light"] .preview-agent-card {
+  background: var(--bg-card);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .trade-overlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .trade-modal {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Theme Toggle Button ─── */
+
+.theme-toggle-btn {
+  font-size: 1.1rem !important;
+  padding: 6px 8px !important;
+  min-width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Login Dropdown ─── */
+
+.login-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeIn 0.15s ease;
+}
+
+.login-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.login-dropdown__item:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.login-dropdown__item + .login-dropdown__item {
+  border-top: 1px solid var(--border);
+}
+
 /* ─── Reset & Base ─── */
 
 *, *::before, *::after {
@@ -2158,6 +2270,403 @@ a:hover {
   .trade-modal__price-row > div {
     flex-direction: row;
     justify-content: space-between;
+    width: 100%;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   CREATE AGENT WIZARD
+   ══════════════════════════════════════════════ */
+
+.create-wizard {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+/* ─── Step Indicator ─── */
+
+.wizard-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  margin-bottom: 32px;
+  position: relative;
+  padding: 0 48px;
+}
+
+.wizard-steps__line {
+  position: absolute;
+  top: 16px;
+  left: 64px;
+  right: 64px;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.wizard-step__dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+
+.wizard-step--active .wizard-step__dot {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: white;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+}
+
+.wizard-step--done .wizard-step__dot {
+  border-color: var(--success);
+  background: var(--success);
+  color: white;
+}
+
+.wizard-step__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.wizard-step--active .wizard-step__label {
+  color: var(--accent-primary);
+}
+
+.wizard-step--done .wizard-step__label {
+  color: var(--success);
+}
+
+/* ─── Wizard Card ─── */
+
+.wizard-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.wizard-card__header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.wizard-card__icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.wizard-card__header h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.wizard-card__hint {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* ─── Wizard Form ─── */
+
+.wizard-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wizard-field {
+  position: relative;
+}
+
+.wizard-field__counter {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.wizard-validation {
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--danger);
+  font-size: 0.825rem;
+}
+
+.label__required {
+  color: var(--danger);
+  margin-left: 2px;
+}
+
+/* ─── Faction Grid ─── */
+
+.faction-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.faction-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.faction-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--faction-color, var(--accent-primary));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.faction-card:hover {
+  border-color: var(--faction-color, var(--accent-primary));
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.faction-card:hover::before {
+  opacity: 1;
+}
+
+.faction-card--selected {
+  border-color: var(--faction-color, var(--accent-primary));
+  background: rgba(99, 102, 241, 0.06);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+}
+
+.faction-card--selected::before {
+  opacity: 1;
+}
+
+.faction-card__emoji {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.faction-card__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.faction-card__subtitle {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.faction-card__desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.faction-card__check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--faction-color, var(--accent-primary));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+/* ─── Preview Card ─── */
+
+.preview-agent-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: var(--transition);
+}
+
+.preview-agent-card__top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.preview-agent-card__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg-glass);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.preview-agent-card__name {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.preview-agent-card__faction {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.preview-agent-card__faction-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.preview-agent-card__persona {
+  padding: 16px;
+  background: rgba(99, 102, 241, 0.04);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.preview-agent-card__persona-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.preview-agent-card__persona p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.preview-agent-card__stats {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* ─── Wizard Navigation ─── */
+
+.wizard-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wizard-nav .btn--primary {
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wizard-nav .btn--primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Wizard Mobile ─── */
+
+@media (max-width: 640px) {
+  .wizard-steps {
+    gap: 24px;
+    padding: 0 16px;
+  }
+
+  .wizard-steps__line {
+    left: 32px;
+    right: 32px;
+  }
+
+  .wizard-step__label {
+    font-size: 0.65rem;
+  }
+
+  .wizard-card {
+    padding: 20px 16px;
+  }
+
+  .faction-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-agent-card__top {
+    flex-wrap: wrap;
+  }
+
+  .wizard-nav {
+    flex-direction: column-reverse;
+  }
+
+  .wizard-nav .btn {
     width: 100%;
   }
 }

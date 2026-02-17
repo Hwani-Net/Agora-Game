@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import { fetchAgents, fetchRecentDebates, fetchStocks } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
 
 export default function HomePage() {
+  const { t } = useTranslation();
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const [stats, setStats] = useState<{
@@ -42,8 +44,9 @@ export default function HomePage() {
             backgroundClip: 'text',
           }}
         >
-          AI가 토론하고,<br />
-          당신이 투자한다.
+          <Trans i18nKey="home.hero_title">
+            AI가 토론하고,<br />당신이 투자한다.
+          </Trans>
         </h1>
         <p
           style={{
@@ -54,22 +57,21 @@ export default function HomePage() {
             lineHeight: 1.7,
           }}
         >
-          나만의 AI 에이전트를 만들고, 아레나에서 토론시키고,
-          주식시장에 상장하세요. 지식이 곧 자본이 되는 곳.
+          {t('home.hero_subtitle')}
         </p>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           {user ? (
-            <button className="btn btn--primary btn--lg" onClick={() => navigate('/agents')}>
-              ⚔️ 에이전트 만들기
+            <button className="btn btn--primary btn--lg" onClick={() => navigate('/agents/create')}>
+              {t('home.cta_create_agent')}
             </button>
           ) : (
             <button className="btn btn--primary btn--lg" onClick={() => navigate('/arena/live')}>
-              🏟️ 관전 시작하기
+              {t('home.cta_watch_arena')}
             </button>
           )}
           <button className="btn btn--secondary btn--lg" onClick={() => navigate('/market')}>
-            📈 주식시장 보기
+            {t('home.cta_view_market')}
           </button>
         </div>
       </section>
@@ -79,20 +81,20 @@ export default function HomePage() {
         {[
           {
             icon: '🧬',
-            title: '창조 연구소',
-            desc: 'AI 에이전트를 만들고 팩션을 선택하세요. 합리주의자? 이상주의자? 당신의 선택입니다.',
+            title: t('home.features.creation.title'),
+            desc: t('home.features.creation.desc'),
             page: 'agents' as const,
           },
           {
             icon: '⚔️',
-            title: '배틀 아레나',
-            desc: '실시간 AI 토론을 관전하세요. AI 심판이 승패를 판정하고 ELO가 변동됩니다.',
+            title: t('home.features.arena.title'),
+            desc: t('home.features.arena.desc'),
             page: 'arena' as const,
           },
           {
             icon: '📊',
-            title: '주식 거래소',
-            desc: '유망한 AI 에이전트에 투자하세요. 토론 승리 시 주가가 오르고 배당금이 지급됩니다.',
+            title: t('home.features.market.title'),
+            desc: t('home.features.market.desc'),
             page: 'market' as const,
           },
         ].map((f) => (
@@ -114,10 +116,10 @@ export default function HomePage() {
       {/* ─── Stats ─── */}
       <section className="grid grid--4" style={{ marginBottom: 48 }}>
         {[
-          { label: '활성 에이전트', value: stats.totalAgents, icon: '🤖' },
-          { label: '최근 토론', value: stats.recentBattles, icon: '⚡' },
-          { label: '상장 종목', value: stats.totalStocks, icon: '📈' },
-          { label: '총 보상 풀', value: '∞', icon: '💰' },
+          { label: t('home.stats.active_agents'), value: stats.totalAgents, icon: '🤖' },
+          { label: t('home.stats.recent_debates'), value: stats.recentBattles, icon: '⚡' },
+          { label: t('home.stats.listed_stocks'), value: stats.totalStocks, icon: '📈' },
+          { label: t('home.stats.reward_pool'), value: '∞', icon: '💰' },
         ].map((s) => (
           <div key={s.label} className="card" style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>{s.icon}</div>

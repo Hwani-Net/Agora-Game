@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getDebateById } from '../api.js';
 import { useToast } from '../ToastContext.js';
 
@@ -26,12 +27,6 @@ type DebateDetail = {
   elo_change_loser?: number | null;
 };
 
-const ROUND_TITLES: Record<number, string> = {
-  1: '주장',
-  2: '반박',
-  3: '최종 변론',
-};
-
 function useCountUp(target: number, duration = 700) {
   const [value, setValue] = useState(0);
 
@@ -55,10 +50,15 @@ function useCountUp(target: number, duration = 700) {
 }
 
 export default function DebateDetailPage() {
+  const { t } = useTranslation();
   const { debateId } = useParams();
   const { pushToast } = useToast();
   const [debate, setDebate] = useState<DebateDetail | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const getRoundTitle = useCallback((round: number) => {
+    return t(`live_debate.rounds.p${round}`, { defaultValue: 'Debate' });
+  }, [t]);
 
   useEffect(() => {
     if (!debateId) return;
@@ -71,7 +71,7 @@ export default function DebateDetailPage() {
       })
       .catch((err) => {
         if (!active) return;
-        pushToast(err instanceof Error ? err.message : '토론 정보를 불러오지 못했습니다.', 'error');
+        pushToast(err instanceof Error ? err.message : t('debate_detail.not_found'), 'error');
         setDebate(null);
       })
       .finally(() => {
@@ -82,7 +82,7 @@ export default function DebateDetailPage() {
     return () => {
       active = false;
     };
-  }, [debateId, pushToast]);
+  }, [debateId, pushToast, t]);
 
   const rounds = useMemo(() => {
     if (!debate?.rounds) return [] as DebateRound[];
@@ -122,8 +122,8 @@ export default function DebateDetailPage() {
     return (
       <div className="empty-state">
         <div className="empty-state__icon">📭</div>
-        <div className="empty-state__title">토론을 찾을 수 없습니다</div>
-        <p>요청하신 토론이 존재하지 않거나 삭제되었습니다.</p>
+        <div className="empty-state__title">{t('debate_detail.not_found')}</div>
+        <p>{t('debate_detail.not_found_desc')}</p>
       </div>
     );
   }
@@ -131,7 +131,7 @@ export default function DebateDetailPage() {
   return (
     <div className="debate-detail animate-fade-in">
       <section className="card debate-detail__hero">
-        <div className="debate-detail__topic">토론 주제</div>
+        <div className="debate-detail__topic">{t('debate_detail.topic_label')}</div>
         <h2 className="debate-detail__title">{debate.topic}</h2>
         <div className="debate-detail__agents">
           <span>{debate.agent1_name}</span>
@@ -142,30 +142,38 @@ export default function DebateDetailPage() {
 
       <section className="debate-detail__rounds">
         {rounds.length === 0 ? (
-          <div className="card empty-state">라운드 기록이 아직 준비되지 않았습니다.</div>
+          <div className="card empty-state">{t('debate_detail.no_rounds')}</div>
         ) : (
           rounds.map((round, index) => (
-            <div key={`${round.round}-${index}`} className="card debate-round stagger-item" style={{ animationDelay: `${index * 0.1}s` }}>
+            <div
+              key={`${round.round}-${index}`}
+              className="card debate-round stagger-item"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <div className="debate-round__header">
                 <div className="debate-round__label">
-                  라운드 {round.round}: {ROUND_TITLES[round.round] || '토론'}
+                  {t('debate_detail.round_info', { round: round.round, title: getRoundTitle(round.round) })}
                 </div>
                 {(round.agent1_score != null || round.agent2_score != null) && (
                   <div className="debate-round__score">
-                    <span>{round.agent1_score ?? '-'} 점</span>
+                    <span>{round.agent1_score ?? '-'} {t('debate_detail.score_unit')}</span>
                     <span>:</span>
-                    <span>{round.agent2_score ?? '-'} 점</span>
+                    <span>{round.agent2_score ?? '-'} {t('debate_detail.score_unit')}</span>
                   </div>
                 )}
               </div>
               <div className="debate-round__grid">
                 <div>
                   <div className="debate-round__speaker">🟣 {debate.agent1_name}</div>
-                  <div className="debate-round__text">{round.agent1_argument || '발언이 없습니다.'}</div>
+                  <div className="debate-round__text">
+                    {round.agent1_argument || t('debate_detail.no_argument')}
+                  </div>
                 </div>
                 <div>
                   <div className="debate-round__speaker">🔵 {debate.agent2_name}</div>
-                  <div className="debate-round__text">{round.agent2_argument || '발언이 없습니다.'}</div>
+                  <div className="debate-round__text">
+                    {round.agent2_argument || t('debate_detail.no_argument')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -174,11 +182,11 @@ export default function DebateDetailPage() {
       </section>
 
       <section className="card debate-detail__result">
-        <h3>🏆 판정 결과</h3>
+        <h3>{t('live_debate.result.title')}</h3>
         {winnerName ? (
           <div className="debate-detail__result-grid">
             <div>
-              <div className="debate-detail__result-label">승자</div>
+              <div className="debate-detail__result-label">{t('live_debate.result.winner')}</div>
               <div className="debate-detail__result-value">
                 {winnerName}
                 <span className="elo-change elo-change--up">
@@ -187,7 +195,7 @@ export default function DebateDetailPage() {
               </div>
             </div>
             <div>
-              <div className="debate-detail__result-label">패자</div>
+              <div className="debate-detail__result-label">{t('live_debate.result.loser')}</div>
               <div className="debate-detail__result-value">
                 {loserName}
                 <span className="elo-change elo-change--down">{loserEloAnimated}</span>
@@ -195,13 +203,14 @@ export default function DebateDetailPage() {
             </div>
           </div>
         ) : (
-          <p className="debate-detail__pending">아직 판정이 완료되지 않았습니다.</p>
+          <p className="debate-detail__pending">{t('debate_detail.pending_judgment')}</p>
         )}
         <div className="debate-detail__reason">
-          <div className="debate-detail__reason-label">판정 이유</div>
-          <p>{debate.judge_reasoning || '판정 사유가 제공되지 않았습니다.'}</p>
+          <div className="debate-detail__reason-label">{t('live_debate.result.reasoning')}</div>
+          <p>{debate.judge_reasoning || t('debate_detail.no_reasoning')}</p>
         </div>
       </section>
     </div>
   );
 }
+

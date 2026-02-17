@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fetchStocks, fetchPortfolio, tradeStock, type PortfolioItem, type TradeResult } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
 import { useToast } from '../ToastContext.js';
@@ -17,6 +18,7 @@ interface Stock {
 type TradeTab = 'buy' | 'sell';
 
 export default function MarketPage() {
+  const { t } = useTranslation();
   const { user, refreshProfile, login } = useAuthContext();
   const { pushToast } = useToast();
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -33,7 +35,7 @@ export default function MarketPage() {
         fetchStocks(),
         user ? fetchPortfolio() : Promise.resolve([]),
       ]);
-      setStocks(Array.isArray(stocksData) ? stocksData as Stock[] : []);
+      setStocks(Array.isArray(stocksData) ? (stocksData as Stock[]) : []);
       setPortfolio(portfolioData);
     } catch {
       setStocks([]);
@@ -74,7 +76,7 @@ export default function MarketPage() {
 
   // Find user's ownership for the selected stock
   function getOwnedShares(stockId: string): number {
-    return portfolio.find(p => p.stock_id === stockId)?.shares_owned || 0;
+    return portfolio.find((p) => p.stock_id === stockId)?.shares_owned || 0;
   }
 
   // Max quantity user can buy (limited by gold and available shares)
@@ -90,22 +92,35 @@ export default function MarketPage() {
     try {
       const result: TradeResult = await tradeStock(selectedStock.id, tradeTab, quantity);
       if (result.success) {
-        const verb = tradeTab === 'buy' ? '매수' : '매도';
+        const actionLabel = tradeTab === 'buy' ? t('market.trade_modal.buy') : t('market.trade_modal.sell');
         const amount = tradeTab === 'buy' ? result.total_cost : result.total_revenue;
-        pushToast(`${verb} 완료! ${quantity}주 × ${Math.round(selectedStock.current_price)}G = ${Math.round(amount || 0)}G`, 'success');
+
+        pushToast(
+          t('market.messages.trade_success', {
+            action: actionLabel,
+            qty: quantity,
+            price: Math.round(selectedStock.current_price).toLocaleString(),
+            total: Math.round(amount || 0).toLocaleString(),
+          }),
+          'success'
+        );
         closeTradeModal();
         // Reload data
         await Promise.all([loadData(), refreshProfile()]);
       }
     } catch (err) {
-      pushToast(err instanceof Error ? err.message : '거래에 실패했습니다.', 'error');
+      pushToast(err instanceof Error ? err.message : t('common.error'), 'error');
     } finally {
       setTrading(false);
     }
   }
 
   if (loading) {
-    return <div className="loading-center"><div className="spinner" /></div>;
+    return (
+      <div className="loading-center">
+        <div className="spinner" />
+      </div>
+    );
   }
 
   const totalPortfolioValue = portfolio.reduce((sum, p) => sum + p.total_value, 0);
@@ -115,8 +130,8 @@ export default function MarketPage() {
     <div className="animate-fade-in">
       <div className="section-header">
         <div>
-          <h2 className="section-header__title">📊 AI 주식 거래소</h2>
-          <p className="section-header__subtitle">유망한 AI 에이전트에 투자하세요</p>
+          <h2 className="section-header__title">📊 {t('market.title')}</h2>
+          <p className="section-header__subtitle">{t('market.subtitle')}</p>
         </div>
         {user && (
           <div className="market-gold-badge">
@@ -130,59 +145,67 @@ export default function MarketPage() {
         <div className="portfolio-section">
           <div className="portfolio-summary">
             <div className="portfolio-summary__item">
-              <span className="portfolio-summary__label">보유 종목</span>
-              <span className="portfolio-summary__value">{portfolio.length}개</span>
+              <span className="portfolio-summary__label">{t('market.portfolio.owned_stocks')}</span>
+              <span className="portfolio-summary__value">{portfolio.length}</span>
             </div>
             <div className="portfolio-summary__item">
-              <span className="portfolio-summary__label">평가액</span>
-              <span className="portfolio-summary__value">{Math.round(totalPortfolioValue).toLocaleString()} G</span>
-            </div>
-            <div className="portfolio-summary__item">
-              <span className="portfolio-summary__label">수익</span>
-              <span className={`portfolio-summary__value ${totalProfit >= 0 ? 'profit--up' : 'profit--down'}`}>
-                {totalProfit >= 0 ? '+' : ''}{Math.round(totalProfit).toLocaleString()} G
+              <span className="portfolio-summary__label">{t('market.portfolio.valuation')}</span>
+              <span className="portfolio-summary__value">
+                {Math.round(totalPortfolioValue).toLocaleString()} G
               </span>
             </div>
             <div className="portfolio-summary__item">
-              <span className="portfolio-summary__label">총 자산</span>
+              <span className="portfolio-summary__label">{t('market.portfolio.profit')}</span>
+              <span className={`portfolio-summary__value ${totalProfit >= 0 ? 'profit--up' : 'profit--down'}`}>
+                {totalProfit >= 0 ? '+' : ''}
+                {Math.round(totalProfit).toLocaleString()} G
+              </span>
+            </div>
+            <div className="portfolio-summary__item">
+              <span className="portfolio-summary__label">{t('market.portfolio.total_assets')}</span>
               <span className="portfolio-summary__value portfolio-summary__value--highlight">
                 {(user.gold_balance + Math.round(totalPortfolioValue)).toLocaleString()} G
               </span>
             </div>
           </div>
 
-          <h3 className="portfolio-title">📂 내 포트폴리오</h3>
+          <h3 className="portfolio-title">{t('market.portfolio.title')}</h3>
           <div className="portfolio-list">
             {portfolio.map((item) => (
               <div key={item.stock_id} className="portfolio-item card">
                 <div className="portfolio-item__info">
                   <span className="portfolio-item__name">🤖 {item.agent_name}</span>
-                  <span className="portfolio-item__shares">{item.shares_owned}주 보유</span>
+                  <span className="portfolio-item__shares">{t('market.portfolio.shares', { count: item.shares_owned })}</span>
                 </div>
                 <div className="portfolio-item__prices">
                   <div>
-                    <span className="portfolio-item__label">평균단가</span>
-                    <span className="portfolio-item__avg">{Math.round(item.avg_buy_price).toLocaleString()} G</span>
+                    <span className="portfolio-item__label">{t('market.portfolio.avg_cost')}</span>
+                    <span className="portfolio-item__avg">
+                      {Math.round(item.avg_buy_price).toLocaleString()} G
+                    </span>
                   </div>
                   <div>
-                    <span className="portfolio-item__label">현재가</span>
-                    <span className="portfolio-item__current">{Math.round(item.current_price).toLocaleString()} G</span>
+                    <span className="portfolio-item__label">{t('market.portfolio.current_price')}</span>
+                    <span className="portfolio-item__current">
+                      {Math.round(item.current_price).toLocaleString()} G
+                    </span>
                   </div>
                   <div>
-                    <span className="portfolio-item__label">수익률</span>
+                    <span className="portfolio-item__label">{t('market.portfolio.pnl')}</span>
                     <span className={`portfolio-item__pnl ${item.profit >= 0 ? 'profit--up' : 'profit--down'}`}>
-                      {item.profit >= 0 ? '+' : ''}{item.profit_pct.toFixed(1)}%
+                      {item.profit >= 0 ? '+' : ''}
+                      {item.profit_pct.toFixed(1)}%
                     </span>
                   </div>
                 </div>
                 <button
                   className="btn btn--sm btn--sell"
                   onClick={() => {
-                    const stock = stocks.find(s => s.id === item.stock_id);
+                    const stock = stocks.find((s) => s.id === item.stock_id);
                     if (stock) openTradeModal(stock, 'sell');
                   }}
                 >
-                  매도
+                  {t('market.trade_modal.sell')}
                 </button>
               </div>
             ))}
@@ -194,20 +217,20 @@ export default function MarketPage() {
       {stocks.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state__icon">📈</div>
-          <div className="empty-state__title">아직 상장된 AI가 없습니다</div>
-          <p>Diamond 이상 티어의 에이전트가 IPO를 진행하면 여기에 표시됩니다.</p>
+          <div className="empty-state__title">{t('market.messages.no_stocks')}</div>
+          <p>{t('market.messages.ipo_hint')}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Table Header */}
           <div className="market-table-header">
-            <span>종목</span>
-            <span style={{ textAlign: 'right' }}>현재가</span>
-            <span style={{ textAlign: 'right' }}>변동</span>
-            <span style={{ textAlign: 'right' }}>시가총액</span>
-            <span style={{ textAlign: 'right' }}>잔여 주식</span>
-            <span style={{ textAlign: 'center' }}>차트</span>
-            <span style={{ textAlign: 'center' }}>거래</span>
+            <span>{t('market.list.agent')}</span>
+            <span style={{ textAlign: 'right' }}>{t('market.list.price')}</span>
+            <span style={{ textAlign: 'right' }}>{t('market.list.change')}</span>
+            <span style={{ textAlign: 'right' }}>{t('market.list.market_cap')}</span>
+            <span style={{ textAlign: 'right' }}>{t('market.list.avail_shares')}</span>
+            <span style={{ textAlign: 'center' }}>{t('market.list.chart')}</span>
+            <span style={{ textAlign: 'center' }}>{t('market.list.trade')}</span>
           </div>
 
           {/* Stock Rows */}
@@ -223,10 +246,17 @@ export default function MarketPage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600 }}>🤖 {stock.agent_name || `Agent #${stock.agent_id.slice(0, 8)}`}</div>
+                  <div style={{ fontWeight: 600 }}>
+                    🤖 {stock.agent_name || `Agent #${stock.agent_id.slice(0, 8)}`}
+                  </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {stock.total_shares.toLocaleString()} shares
-                    {owned > 0 && <span className="owned-badge"> · 보유 {owned}주</span>}
+                    {stock.total_shares.toLocaleString()} {t('market.list.shares_unit')}
+                    {owned > 0 && (
+                      <span className="owned-badge">
+                        {' '}
+                        · {t('market.trade_modal.owned')} {owned}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="market-cell-mono market-cell-price">
@@ -236,14 +266,11 @@ export default function MarketPage() {
                   className="market-cell-mono"
                   style={{ color: priceChangeColor(stock.price_change_24h), fontWeight: 600 }}
                 >
-                  {priceChangePrefix(stock.price_change_24h)}{stock.price_change_24h.toFixed(1)}%
+                  {priceChangePrefix(stock.price_change_24h)}
+                  {stock.price_change_24h.toFixed(1)}%
                 </div>
-                <div className="market-cell-mono">
-                  {(stock.market_cap / 1000).toFixed(0)}K
-                </div>
-                <div className="market-cell-mono">
-                  {stock.available_shares.toLocaleString()}
-                </div>
+                <div className="market-cell-mono">{(stock.market_cap / 1000).toFixed(0)}K</div>
+                <div className="market-cell-mono">{stock.available_shares.toLocaleString()}</div>
                 <div className="stock-mini-chart" style={{ justifyContent: 'center' }}>
                   {bars.map((h, i) => (
                     <div
@@ -259,12 +286,18 @@ export default function MarketPage() {
                 <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                   {user ? (
                     <>
-                      <button className="btn btn--xs btn--buy" onClick={() => openTradeModal(stock, 'buy')}>
-                        매수
+                      <button
+                        className="btn btn--xs btn--buy"
+                        onClick={() => openTradeModal(stock, 'buy')}
+                      >
+                        {t('market.trade_modal.buy')}
                       </button>
                       {owned > 0 && (
-                        <button className="btn btn--xs btn--sell" onClick={() => openTradeModal(stock, 'sell')}>
-                          매도
+                        <button
+                          className="btn btn--xs btn--sell"
+                          onClick={() => openTradeModal(stock, 'sell')}
+                        >
+                          {t('market.trade_modal.sell')}
                         </button>
                       )}
                     </>
@@ -272,11 +305,11 @@ export default function MarketPage() {
                     <button
                       className="btn btn--xs btn--ghost"
                       onClick={() => {
-                        pushToast('로그인을 진행합니다...', 'info');
+                        pushToast(t('market.messages.login_prompt'), 'info');
                         login().catch((err: Error) => pushToast(err.message, 'error'));
                       }}
                     >
-                      🔒 로그인
+                      🔒 {t('nav.login')}
                     </button>
                   )}
                 </div>
@@ -293,22 +326,30 @@ export default function MarketPage() {
             {/* Header */}
             <div className="trade-modal__header">
               <h3>🤖 {selectedStock.agent_name || 'Agent'}</h3>
-              <button className="trade-modal__close" onClick={closeTradeModal}>✕</button>
+              <button className="trade-modal__close" onClick={closeTradeModal}>
+                ✕
+              </button>
             </div>
 
             {/* Price Info */}
             <div className="trade-modal__price-row">
               <div>
-                <span className="trade-modal__price-label">현재가</span>
-                <span className="trade-modal__price-value">{Math.round(selectedStock.current_price).toLocaleString()} G</span>
+                <span className="trade-modal__price-label">{t('market.list.price')}</span>
+                <span className="trade-modal__price-value">
+                  {Math.round(selectedStock.current_price).toLocaleString()} G
+                </span>
               </div>
               <div>
-                <span className="trade-modal__price-label">잔여 주식</span>
-                <span className="trade-modal__price-value">{selectedStock.available_shares.toLocaleString()}</span>
+                <span className="trade-modal__price-label">{t('market.list.avail_shares')}</span>
+                <span className="trade-modal__price-value">
+                  {selectedStock.available_shares.toLocaleString()}
+                </span>
               </div>
               <div>
-                <span className="trade-modal__price-label">보유</span>
-                <span className="trade-modal__price-value">{getOwnedShares(selectedStock.id)}주</span>
+                <span className="trade-modal__price-label">{t('market.trade_modal.owned')}</span>
+                <span className="trade-modal__price-value">
+                  {t('market.portfolio.shares', { count: getOwnedShares(selectedStock.id) })}
+                </span>
               </div>
             </div>
 
@@ -316,26 +357,38 @@ export default function MarketPage() {
             <div className="trade-tabs">
               <button
                 className={`trade-tab ${tradeTab === 'buy' ? 'trade-tab--active trade-tab--buy' : ''}`}
-                onClick={() => { setTradeTab('buy'); setQuantity(1); }}
+                onClick={() => {
+                  setTradeTab('buy');
+                  setQuantity(1);
+                }}
               >
-                매수
+                {t('market.trade_modal.buy')}
               </button>
               <button
                 className={`trade-tab ${tradeTab === 'sell' ? 'trade-tab--active trade-tab--sell' : ''}`}
-                onClick={() => { setTradeTab('sell'); setQuantity(1); }}
+                onClick={() => {
+                  setTradeTab('sell');
+                  setQuantity(1);
+                }}
                 disabled={getOwnedShares(selectedStock.id) === 0}
               >
-                매도
+                {t('market.trade_modal.sell')}
               </button>
             </div>
 
             {/* Quantity Input */}
             <div className="trade-quantity">
-              <label className="trade-quantity__label">수량</label>
+              <label className="trade-quantity__label">{t('market.trade_modal.amount')}</label>
               <div className="trade-quantity__controls">
                 <div className="trade-quantity__quick">
-                  {[1, 5, 10, 50].map(n => (
-                    <button key={n} className="btn btn--xs btn--ghost" onClick={() => setQuantity(n)}>{n}</button>
+                  {[1, 5, 10, 50].map((n) => (
+                    <button
+                      key={n}
+                      className="btn btn--xs btn--ghost"
+                      onClick={() => setQuantity(n)}
+                    >
+                      {n}
+                    </button>
                   ))}
                   <button
                     className="btn btn--xs btn--ghost"
@@ -351,7 +404,12 @@ export default function MarketPage() {
                   </button>
                 </div>
                 <div className="trade-quantity__input-row">
-                  <button className="trade-qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>−</button>
+                  <button
+                    className="trade-qty-btn"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    −
+                  </button>
                   <input
                     type="number"
                     className="trade-qty-input"
@@ -360,7 +418,9 @@ export default function MarketPage() {
                     max={tradeTab === 'buy' ? getMaxBuyQuantity() : getOwnedShares(selectedStock.id)}
                     onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                   />
-                  <button className="trade-qty-btn" onClick={() => setQuantity(quantity + 1)}>+</button>
+                  <button className="trade-qty-btn" onClick={() => setQuantity(quantity + 1)}>
+                    +
+                  </button>
                 </div>
               </div>
             </div>
@@ -368,20 +428,33 @@ export default function MarketPage() {
             {/* Summary */}
             <div className="trade-summary">
               <div className="trade-summary__row">
-                <span>{tradeTab === 'buy' ? '총 매수 비용' : '총 매도 수익'}</span>
+                <span>
+                  {tradeTab === 'buy'
+                    ? t('market.trade_modal.total_buy_cost')
+                    : t('market.trade_modal.total_sell_revenue')}
+                </span>
                 <span className="trade-summary__amount">
                   {Math.round(selectedStock.current_price * quantity).toLocaleString()} G
                 </span>
               </div>
               <div className="trade-summary__row">
-                <span>내 골드</span>
+                <span>{t('market.trade_modal.balance')}</span>
                 <span>{user.gold_balance.toLocaleString()} G</span>
               </div>
               {tradeTab === 'buy' && (
                 <div className="trade-summary__row">
-                  <span>거래 후 잔액</span>
-                  <span className={user.gold_balance - Math.round(selectedStock.current_price * quantity) < 0 ? 'profit--down' : ''}>
-                    {(user.gold_balance - Math.round(selectedStock.current_price * quantity)).toLocaleString()} G
+                  <span>{t('market.trade_modal.after_balance')}</span>
+                  <span
+                    className={
+                      user.gold_balance - Math.round(selectedStock.current_price * quantity) < 0
+                        ? 'profit--down'
+                        : ''
+                    }
+                  >
+                    {(
+                      user.gold_balance - Math.round(selectedStock.current_price * quantity)
+                    ).toLocaleString()}{' '}
+                    G
                   </span>
                 </div>
               )}
@@ -393,20 +466,18 @@ export default function MarketPage() {
               disabled={
                 trading ||
                 quantity <= 0 ||
-                (tradeTab === 'buy' && (
-                  quantity > selectedStock.available_shares ||
-                  selectedStock.current_price * quantity > user.gold_balance
-                )) ||
+                (tradeTab === 'buy' &&
+                  (quantity > selectedStock.available_shares ||
+                    selectedStock.current_price * quantity > user.gold_balance)) ||
                 (tradeTab === 'sell' && quantity > getOwnedShares(selectedStock.id))
               }
               onClick={handleTrade}
             >
               {trading
-                ? '처리 중...'
+                ? t('common.loading')
                 : tradeTab === 'buy'
-                  ? `${quantity}주 매수하기`
-                  : `${quantity}주 매도하기`
-              }
+                  ? t('market.trade_modal.action_buy', { count: quantity })
+                  : t('market.trade_modal.action_sell', { count: quantity })}
             </button>
           </div>
         </div>

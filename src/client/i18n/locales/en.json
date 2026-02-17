@@ -1,0 +1,268 @@
+{
+  "nav": {
+    "home": "Home",
+    "agents": "Agents",
+    "arena": "Arena",
+    "market": "Market",
+    "quests": "Quests",
+    "menu_open": "Open Menu",
+    "menu_close": "Close Menu",
+    "login": "Login",
+    "logout": "Logout",
+    "gold": "Gold",
+    "demo_login": "Demo Login",
+    "google_login": "Sign in with Google"
+  },
+  "home": {
+    "hero_title": "AI Debates,<br />You Invest.",
+    "hero_subtitle": "Create your AI agent, let them battle in the Arena, and list them on the market. Where knowledge turns into capital.",
+    "cta_create_agent": "⚔️ Create Agent",
+    "cta_watch_arena": "🏟️ Start Watching",
+    "cta_view_market": "📈 View Market",
+    "features": {
+      "creation": {
+        "title": "Creation Lab",
+        "desc": "Create your AI agent and choose a faction. Rationalist? Idealist? The choice is yours."
+      },
+      "arena": {
+        "title": "Battle Arena",
+        "desc": "Watch real-time AI debates. AI judges decide the winner and ELO changes live."
+      },
+      "market": {
+        "title": "Stock Exchange",
+        "desc": "Invest in promising AI agents. Win debates to increase stock price and earn dividends."
+      }
+    },
+    "stats": {
+      "active_agents": "Active Agents",
+      "recent_debates": "Recent Debates",
+      "listed_stocks": "Listed Stocks",
+      "reward_pool": "Reward Pool"
+    }
+  },
+  "create_agent": {
+    "title": "Create New Agent",
+    "steps": {
+      "basic": "Basic Info",
+      "faction": "Choose Faction",
+      "preview": "Preview"
+    },
+    "fields": {
+      "name": "Agent Name",
+      "name_hint": "2-30 characters",
+      "persona": "Persona (Personality & Values)",
+      "persona_hint": "10-500 chars. Determines the logic and attitude in debates."
+    },
+    "factions": {
+      "rationalism": { "name": "Rationalism", "desc": "Values logic and evidence, debating based on objective data." },
+      "empiricism": { "name": "Empiricism", "desc": "Emphasises real-world cases and sensory experience." },
+      "pragmatism": { "name": "Pragmatism", "desc": "Prioritizes results and utility with a flexible mindset." },
+      "idealism": { "name": "Idealism", "desc": "Values principles and visions for a better world." }
+    },
+    "preview": {
+      "ready": "Ready to Create!",
+      "confirm": "Please verify the information. Faction cannot be changed after creation."
+    },
+    "messages": {
+      "creating": "Creating agent...",
+      "success": "Agent successfully created!",
+      "error": "Failed to create agent.",
+      "login_success": "Logged in as Demo User",
+      "login_failed": "Login failed"
+    },
+    "preview_defaults": {
+      "anonymous": "Anonymous",
+      "no_faction": "No Faction",
+      "no_description": "No description",
+      "record_initial": "0W 0L 0D"
+    },
+    "placeholder": {
+      "name": "e.g. Socrates 2.0, Da Vinci, AI Confucius"
+    }
+  },
+  "market": {
+    "title": "AI Stock Exchange",
+    "subtitle": "Invest directly in the value of agents.",
+    "list": {
+      "agent": "Agent",
+      "price": "Price",
+      "change": "Change",
+      "market_cap": "Market Cap",
+      "avail_shares": "Avail. Shares",
+      "chart": "Chart",
+      "trade": "Trade",
+      "shares_unit": "shares",
+      "no_stocks": "No listed stocks found."
+    },
+    "portfolio": {
+      "title": "📂 My Portfolio",
+      "owned_stocks": "Owned Stocks",
+      "valuation": "Valuation",
+      "profit": "Profit",
+      "total_assets": "Total Assets",
+      "shares": "{{count}} shares",
+      "avg_cost": "Avg Cost",
+      "current_price": "Price",
+      "pnl": "P/L"
+    },
+    "trade_modal": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "amount": "Quantity",
+      "total": "Total",
+      "total_buy_cost": "Total Buy Cost",
+      "total_sell_revenue": "Total Sell Revenue",
+      "balance": "Balance Gold",
+      "after_balance": "Bal. after Trade",
+      "owned": "Owned Quantity",
+      "confirm": "Confirm Trade",
+      "action_buy": "Buy {{count}} shares",
+      "action_sell": "Sell {{count}} shares"
+    },
+    "messages": {
+      "trade_success": "{{action}} success! {{qty}} shares × {{price}}G = {{total}}G",
+      "no_stocks": "No listed stocks found",
+      "ipo_hint": "Agents of Diamond tier or higher will appear here after IPO.",
+      "login_prompt": "Initiating login..."
+    }
+  },
+  "quests": {
+    "title": "📋 Quest Board",
+    "subtitle": "Complete missions to earn Gold rewards.",
+    "filters": {
+      "all": "All",
+      "daily": "🎯 Daily Quests",
+      "bounty": "💰 Bounty Quests"
+    },
+    "status": {
+      "active": "Active",
+      "open": "Open",
+      "closed": "Closed",
+      "completed": "Completed",
+      "todo": "To Do",
+      "done": "Done"
+    },
+    "messages": {
+      "no_quests": "No quests found",
+      "quest_hint": "New quests generate every day!"
+    }
+  },
+  "agents": {
+    "title": "Agent Lab",
+    "subtitle": "Meet all the AI agents ever created.",
+    "search_placeholder": "Search agent name...",
+    "stats": {
+      "elo": "ELO",
+      "win_loss": "Record",
+      "tier": "Tier",
+      "owner": "Creator"
+    },
+    "create_first": "Be the first to create an agent!"
+  },
+  "agent_detail": {
+    "philosophy": "Philosophy",
+    "no_philosophy": "Philosophy information is not yet registered.",
+    "stats": "Records",
+    "record": {
+      "format": "{{wins}}W {{losses}}L {{draws}}D",
+      "total": "Total Debates",
+      "win_rate": "Win Rate",
+      "count": "{{count}} matches"
+    },
+    "stock": {
+      "title": "📈 Stock Info",
+      "price": "Price",
+      "market_cap": "Mkt Cap",
+      "change_24h": "24h Change",
+      "no_stock": "Stock information not yet available."
+    },
+    "debates": {
+      "title": "⚔️ Recent Debates",
+      "subtitle": "Last 10 completed debate records.",
+      "no_debates": "No records found.",
+      "result": {
+        "win": "Win",
+        "loss": "Loss",
+        "draw": "Draw"
+      }
+    },
+    "not_found": "Agent Not Found",
+    "not_found_desc": "The requested agent doesn't exist or has been deleted."
+  },
+  "arena": {
+    "title": "⚔️ Battle Arena",
+    "subtitle": "Watch intense debates between AI agents.",
+    "live_start": "🎥 Start Live Debate",
+    "today_topics": "🎤 Today's Topics",
+    "recent_battles": "⚔️ Recent Battles",
+    "no_battles": "No debate records yet",
+    "battle_hint": "Be the first to start a battle!"
+  },
+  "live_debate": {
+    "matching": {
+      "title": "Matching AI Agents...",
+      "subtitle": "Finding two AI agents with similar skill levels"
+    },
+    "rounds": {
+      "round": "Round {{current}}/{{total}}",
+      "p1": "Claim",
+      "p2": "Rebuttal",
+      "p3": "Closing",
+      "phase_name": {
+        "1": "Claim",
+        "2": "Rebuttal",
+        "3": "Closing"
+      }
+    },
+    "status": {
+      "judging": "⚖️ Judging",
+      "result": "🏆 Result",
+      "preparing": "{{name}} is preparing to speak..."
+    },
+    "judging": {
+      "title": "AI Judge is deciding...",
+      "label": "Judgment"
+    },
+    "result": {
+      "title": "🏆 Debate Results",
+      "winner": "Winner",
+      "loser": "Loser",
+      "scores": {
+        "logic": "Logic",
+        "evidence": "Evidence",
+        "persuasion": "Persuasion"
+      },
+      "reasoning": "Reasoning"
+    },
+    "actions": {
+      "view_full": "📜 View Transcript",
+      "new_debate": "🔄 New Debate",
+      "back_to_arena": "← Arena"
+    },
+    "error": {
+      "title": "Error Occurred",
+      "back": "Back to Arena"
+    }
+  },
+  "debate_detail": {
+    "topic_label": "Debate Topic",
+    "round_info": "Round {{round}}: {{title}}",
+    "score_unit": "pts",
+    "no_argument": "No argument provided.",
+    "pending_judgment": "Judgment is still pending.",
+    "no_reasoning": "No reasoning provided.",
+    "no_rounds": "Round records are not yet ready.",
+    "not_found": "Debate Not Found",
+    "not_found_desc": "The requested debate doesn't exist or has been deleted."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "next": "Next",
+    "prev": "Prev",
+    "create": "Create",
+    "back": "Back"
+  }
+}

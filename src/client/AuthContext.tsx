@@ -19,6 +19,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (name?: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
 }
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: false,
   login: async () => {},
+  loginWithGoogle: async () => {},
   logout: () => {},
   refreshProfile: async () => {},
 });
@@ -72,6 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Profile will be created by the DB trigger and loaded by onAuthStateChange
   }, []);
 
+  const loginWithGoogle = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) throw new Error(error.message);
+  }, []);
+
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -83,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadProfile]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

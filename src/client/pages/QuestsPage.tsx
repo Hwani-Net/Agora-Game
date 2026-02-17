@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { fetchQuests } from '../api.js';
 
 interface Quest {
@@ -12,6 +13,7 @@ interface Quest {
 }
 
 export default function QuestsPage() {
+  const { t, i18n } = useTranslation();
   const [quests, setQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'daily' | 'bounty'>('all');
@@ -24,7 +26,7 @@ export default function QuestsPage() {
     setLoading(true);
     try {
       const data = await fetchQuests(filter === 'all' ? undefined : filter);
-      setQuests(Array.isArray(data) ? data as Quest[] : []);
+      setQuests(Array.isArray(data) ? (data as Quest[]) : []);
     } catch {
       setQuests([]);
     } finally {
@@ -33,6 +35,7 @@ export default function QuestsPage() {
   }
 
   function statusBadge(status: string) {
+    const statusLabel = t(`quests.status.${status}`, { defaultValue: status });
     const colors: Record<string, { bg: string; text: string }> = {
       active: { bg: 'rgba(16, 185, 129, 0.1)', text: 'var(--success)' },
       open: { bg: 'rgba(16, 185, 129, 0.1)', text: 'var(--success)' },
@@ -53,7 +56,7 @@ export default function QuestsPage() {
           letterSpacing: '0.03em',
         }}
       >
-        {status}
+        {statusLabel}
       </span>
     );
   }
@@ -62,17 +65,17 @@ export default function QuestsPage() {
     <div className="animate-fade-in">
       <div className="section-header">
         <div>
-          <h2 className="section-header__title">📋 퀘스트 보드</h2>
-          <p className="section-header__subtitle">퀘스트를 완료하고 골드를 획득하세요</p>
+          <h2 className="section-header__title">{t('quests.title')}</h2>
+          <p className="section-header__subtitle">{t('quests.subtitle')}</p>
         </div>
       </div>
 
       {/* ─── Filter ─── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         {[
-          { key: 'all' as const, label: '전체' },
-          { key: 'daily' as const, label: '🎯 일일 퀘스트' },
-          { key: 'bounty' as const, label: '💰 현상금 퀘스트' },
+          { key: 'all' as const, label: t('quests.filters.all') },
+          { key: 'daily' as const, label: t('quests.filters.daily') },
+          { key: 'bounty' as const, label: t('quests.filters.bounty') },
         ].map((f) => (
           <button
             key={f.key}
@@ -85,18 +88,27 @@ export default function QuestsPage() {
       </div>
 
       {loading ? (
-        <div className="loading-center"><div className="spinner" /></div>
+        <div className="loading-center">
+          <div className="spinner" />
+        </div>
       ) : quests.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state__icon">📋</div>
-          <div className="empty-state__title">퀘스트가 없습니다</div>
-          <p>새로운 퀘스트가 매일 생성됩니다!</p>
+          <div className="empty-state__title">{t('quests.messages.no_quests')}</div>
+          <p>{t('quests.messages.quest_hint')}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {quests.map((quest) => (
             <div key={quest.id} className="card" style={{ cursor: 'pointer' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'start',
+                  marginBottom: 8,
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: '1.25rem' }}>{quest.type === 'daily' ? '🎯' : '💰'}</span>
                   <h3 style={{ fontWeight: 700, fontSize: '1rem' }}>{quest.title}</h3>
@@ -119,7 +131,12 @@ export default function QuestsPage() {
                 {quest.description}
               </p>
               <div style={{ marginTop: 8, fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                {new Date(quest.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                {new Date(quest.created_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </div>
             </div>
           ))}

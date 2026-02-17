@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { streamDebate, type DebateEvent } from '../api.js';
 import { useToast } from '../ToastContext.js';
 
@@ -32,8 +33,12 @@ interface DebateResult {
 
 type Phase = 'connecting' | 'matched' | 'debating' | 'judging' | 'result' | 'error';
 
-const ROUND_LABELS: Record<number, string> = { 1: '주장', 2: '반박', 3: '최종 변론' };
 const FACTION_EMOJI: Record<string, string> = {
+  rationalism: '🧠',
+  empiricism: '🔬',
+  pragmatism: '⚙️',
+  idealism: '✨',
+  // Fallback for legacy Korean names if any
   '합리주의': '🧠',
   '경험주의': '🔬',
   '실용주의': '⚙️',
@@ -103,6 +108,7 @@ function ScoreBar({ label, value, max = 10 }: { label: string; value: number; ma
 
 // ─── Main Page ───
 export default function LiveDebatePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { pushToast } = useToast();
 
@@ -119,6 +125,11 @@ export default function LiveDebatePage() {
   const abortRef = useRef<AbortController | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  const getRoundLabel = useCallback((round: number) => {
+    if (round < 1) return '';
+    return t(`live_debate.rounds.p${round}`);
+  }, [t]);
+
   const handleEvent = useCallback((event: DebateEvent) => {
     switch (event.type) {
       case 'matched':
@@ -127,7 +138,6 @@ export default function LiveDebatePage() {
         setAgent1(event.data.agent1);
         setAgent2(event.data.agent2);
         setDebateId(event.data.debateId);
-        // Brief pause to show match, then transition
         setTimeout(() => setPhase('debating'), 1200);
         break;
 
@@ -154,15 +164,16 @@ export default function LiveDebatePage() {
         break;
 
       case 'error':
-        setErrorMsg(event.data.message || '알 수 없는 오류');
+        const msg = event.data.message || t('common.error');
+        setErrorMsg(msg);
         setPhase('error');
-        pushToast(event.data.message || '토론 실행 오류', 'error');
+        pushToast(msg, 'error');
         break;
 
       case 'complete':
         break;
     }
-  }, [pushToast]);
+  }, [pushToast, t]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -175,7 +186,6 @@ export default function LiveDebatePage() {
     };
   }, [handleEvent]);
 
-  // Auto-scroll to bottom as new arguments appear
   useEffect(() => {
     if (contentRef.current) {
       contentRef.current.scrollTop = contentRef.current.scrollHeight;
@@ -188,15 +198,15 @@ export default function LiveDebatePage() {
       <div className="live-page">
         <div className="live-center-msg animate-pulse-slow">
           <div className="live-swords">⚔️</div>
-          <h2>AI 에이전트 매칭 중...</h2>
-          <p>실력이 비슷한 두 AI를 찾고 있습니다</p>
+          <h2>{t('live_debate.matching.title')}</h2>
+          <p>{t('live_debate.matching.subtitle')}</p>
           <div className="spinner" style={{ width: 32, height: 32, margin: '16px auto' }} />
         </div>
       </div>
     );
   }
 
-  // ─── Render: Matched (brief flash) ───
+  // ─── Render: Matched ───
   if (phase === 'matched' && agent1 && agent2) {
     return (
       <div className="live-page">
@@ -224,17 +234,16 @@ export default function LiveDebatePage() {
       <div className="live-page">
         <div className="live-center-msg">
           <div style={{ fontSize: '3rem' }}>❌</div>
-          <h2>오류 발생</h2>
+          <h2>{t('live_debate.error.title')}</h2>
           <p>{errorMsg}</p>
           <button className="btn btn--primary" onClick={() => navigate('/arena')} style={{ marginTop: 16 }}>
-            아레나로 돌아가기
+            {t('live_debate.error.back')}
           </button>
         </div>
       </div>
     );
   }
 
-  // ─── Render: Active Debate / Judging / Result ───
   return (
     <div className="live-page">
       {/* Header */}
@@ -250,7 +259,11 @@ export default function LiveDebatePage() {
         </div>
         <div className="live-header__topic">{topic}</div>
         <div className="live-header__round">
-          {phase === 'judging' ? '⚖️ 판정 중' : phase === 'result' ? '🏆 결과' : `라운드 ${currentRound}/3 · ${ROUND_LABELS[currentRound] || ''}`}
+          {phase === 'judging'
+            ? t('live_debate.status.judging')
+            : phase === 'result'
+              ? t('live_debate.status.result')
+              : `${t('live_debate.rounds.round', { current: currentRound, total: 3 })} · ${getRoundLabel(currentRound)}`}
         </div>
       </div>
 
@@ -261,15 +274,15 @@ export default function LiveDebatePage() {
             key={r}
             className={`live-progress__step ${r < currentRound ? 'done' : ''} ${r === currentRound ? 'active' : ''}`}
           >
-            <span>{ROUND_LABELS[r]}</span>
+            <span>{getRoundLabel(r)}</span>
           </div>
         ))}
         <div className={`live-progress__step ${phase === 'judging' || phase === 'result' ? 'active' : ''}`}>
-          <span>판정</span>
+          <span>{t('live_debate.judging.label')}</span>
         </div>
       </div>
 
-      {/* Chat-style debate content */}
+      {/* Content */}
       <div className="live-content" ref={contentRef}>
         {arguments_.map((arg, i) => (
           <TypingArgument
@@ -280,21 +293,19 @@ export default function LiveDebatePage() {
           />
         ))}
 
-        {/* Speaking indicator */}
         {speakingAgent && phase === 'debating' && (
           <div className="live-typing-indicator animate-fade-in">
             <div className="live-typing-dots">
               <span /><span /><span />
             </div>
-            <span>{speakingAgent}이(가) 발언 준비 중...</span>
+            <span>{t('live_debate.status.preparing', { name: speakingAgent })}</span>
           </div>
         )}
 
-        {/* Judging */}
         {phase === 'judging' && (
           <div className="live-judging animate-fade-in">
             <div className="live-swords">⚖️</div>
-            <h3>AI 심판이 판정 중...</h3>
+            <h3>{t('live_debate.judging.title')}</h3>
             <div className="spinner" style={{ width: 24, height: 24, margin: '8px auto' }} />
           </div>
         )}
@@ -302,16 +313,16 @@ export default function LiveDebatePage() {
         {/* Result */}
         {phase === 'result' && result && (
           <div className="live-result animate-scale-in">
-            <h3 className="live-result__title">🏆 판정 결과</h3>
+            <h3 className="live-result__title">{t('live_debate.result.title')}</h3>
 
             <div className="live-result__winner">
-              <div className="live-result__label">승자</div>
+              <div className="live-result__label">{t('live_debate.result.winner')}</div>
               <div className="live-result__name">{result.winner.name}</div>
               <div className="elo-change elo-change--up">+{result.winner.eloChange} ELO → {result.winner.newElo}</div>
             </div>
 
             <div className="live-result__loser">
-              <div className="live-result__label">패자</div>
+              <div className="live-result__label">{t('live_debate.result.loser')}</div>
               <div className="live-result__name">{result.loser.name}</div>
               <div className="elo-change elo-change--down">{result.loser.eloChange} ELO → {result.loser.newElo}</div>
             </div>
@@ -319,32 +330,32 @@ export default function LiveDebatePage() {
             <div className="live-result__scores">
               <div>
                 <h4>{agent1?.name}</h4>
-                <ScoreBar label="논리" value={result.scores.agent1.logic} />
-                <ScoreBar label="근거" value={result.scores.agent1.evidence} />
-                <ScoreBar label="설득" value={result.scores.agent1.persuasion} />
+                <ScoreBar label={t('live_debate.result.scores.logic')} value={result.scores.agent1.logic} />
+                <ScoreBar label={t('live_debate.result.scores.evidence')} value={result.scores.agent1.evidence} />
+                <ScoreBar label={t('live_debate.result.scores.persuasion')} value={result.scores.agent1.persuasion} />
               </div>
               <div>
                 <h4>{agent2?.name}</h4>
-                <ScoreBar label="논리" value={result.scores.agent2.logic} />
-                <ScoreBar label="근거" value={result.scores.agent2.evidence} />
-                <ScoreBar label="설득" value={result.scores.agent2.persuasion} />
+                <ScoreBar label={t('live_debate.result.scores.logic')} value={result.scores.agent2.logic} />
+                <ScoreBar label={t('live_debate.result.scores.evidence')} value={result.scores.agent2.evidence} />
+                <ScoreBar label={t('live_debate.result.scores.persuasion')} value={result.scores.agent2.persuasion} />
               </div>
             </div>
 
             <div className="live-result__reasoning">
-              <div className="live-result__reasoning-label">판정 이유</div>
+              <div className="live-result__reasoning-label">{t('live_debate.result.reasoning')}</div>
               <p>{result.reasoning}</p>
             </div>
 
             <div className="live-result__actions">
               <button className="btn btn--primary" onClick={() => navigate(`/arena/${debateId}`)}>
-                📜 토론 전문 보기
+                {t('live_debate.actions.view_full')}
               </button>
               <button className="btn btn--secondary" onClick={() => window.location.reload()}>
-                🔄 새 토론 시작
+                {t('live_debate.actions.new_debate')}
               </button>
               <button className="btn btn--ghost" onClick={() => navigate('/arena')}>
-                ← 아레나
+                {t('live_debate.actions.back_to_arena')}
               </button>
             </div>
           </div>
