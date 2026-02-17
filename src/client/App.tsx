@@ -9,6 +9,7 @@ import MarketPage from './pages/MarketPage.js';
 import QuestsPage from './pages/QuestsPage.js';
 import DebateDetailPage from './pages/DebateDetailPage.js';
 import AgentDetailPage from './pages/AgentDetailPage.js';
+import LiveDebatePage from './pages/LiveDebatePage.js';
 
 function AppContent() {
   const { user, login, logout, loading } = useAuthContext();
@@ -89,6 +90,7 @@ function AppContent() {
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/agents/:agentId" element={<AgentDetailPage />} />
           <Route path="/arena" element={<ArenaPage />} />
+          <Route path="/arena/live" element={<LiveDebatePage />} />
           <Route path="/arena/:debateId" element={<DebateDetailPage />} />
           <Route path="/market" element={<MarketPage />} />
           <Route path="/quests" element={<QuestsPage />} />

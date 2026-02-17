@@ -1,9 +1,9 @@
 /**
  * api.ts — Supabase Data Access Layer
  * =====================================
- * Replaces the old fetch-based API client with Supabase queries.
  * All read operations use supabase-js directly.
  * Write operations that need server-side logic (AI debates) use Edge Functions.
+ * Streaming mode uses raw fetch for SSE support.
  */
 
 import { supabase } from './supabase.js';
@@ -17,12 +17,10 @@ export async function fetchAgents(options?: {
 }): Promise<{ agents: unknown[]; total: number }> {
   const { limit = 20, sortBy = 'elo_score', faction } = options || {};
 
-  // Get total count
   let countQuery = supabase.from('agents').select('*', { count: 'exact', head: true });
   if (faction) countQuery = countQuery.eq('faction', faction);
   const { count } = await countQuery;
 
-  // Get agents
   let query = supabase.from('agents').select('*');
   if (faction) query = query.eq('faction', faction);
   query = query.order(sortBy, { ascending: false });
@@ -77,7 +75,7 @@ export async function createAgent(agent: {
     id,
     name: agent.name,
     persona: agent.persona,
-    philosophy: agent.persona, // Use persona as philosophy for now
+    philosophy: agent.persona,
     faction: agent.faction,
     owner_id: user.id,
   }).select().single();
@@ -96,7 +94,6 @@ export async function fetchRecentDebates(limit = 10): Promise<unknown[]> {
     .limit(limit);
 
   if (error) {
-    // Fallback if view doesn't exist — query tables directly
     const { data: fallback } = await supabase
       .from('debates')
       .select('*')
@@ -118,7 +115,6 @@ export async function getDebateById(id: string) {
 }
 
 export async function fetchTopics(): Promise<string[]> {
-  // Return static topics since we no longer have arena.ts
   return [
     'AI 규제가 필요한가?',
     '기본소득은 실현 가능한가?',
@@ -129,12 +125,95 @@ export async function fetchTopics(): Promise<string[]> {
 }
 
 export async function startAutoBattle(): Promise<unknown> {
-  // Edge Function 호출 (Phase 3에서 구현)
   const { data, error } = await supabase.functions.invoke('run-debate', {
     body: { mode: 'auto' },
   });
   if (error) throw new Error(error.message || 'AI 토론 시작에 실패했습니다.');
   return data;
+}
+
+// ─── SSE Streaming Debate ───
+
+export type DebateEvent = {
+  type: 'matched' | 'round_start' | 'speaking' | 'argument' | 'judging' | 'result' | 'complete' | 'error';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
+};
+
+export function streamDebate(
+  onEvent: (event: DebateEvent) => void,
+  signal?: AbortSignal,
+): void {
+  const supabaseUrl: string = import.meta.env?.VITE_SUPABASE_URL || '';
+  const supabaseAnonKey: string = import.meta.env?.VITE_SUPABASE_ANON_KEY || '';
+
+  const url = `${supabaseUrl}/functions/v1/run-debate`;
+
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseAnonKey}`,
+      'apikey': supabaseAnonKey,
+    },
+    body: JSON.stringify({ mode: 'auto', stream: true }),
+    signal,
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        const text = await response.text();
+        onEvent({ type: 'error', data: { message: `서버 오류 (${response.status}): ${text}` } });
+        return;
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        onEvent({ type: 'error', data: { message: '스트림 읽기 실패' } });
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE events from buffer
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop() || '';
+
+        for (const part of parts) {
+          const lines = part.trim().split('\n');
+          let eventType = '';
+          let eventData = '';
+
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              eventType = line.slice(7);
+            } else if (line.startsWith('data: ')) {
+              eventData = line.slice(6);
+            }
+          }
+
+          if (eventType && eventData) {
+            try {
+              const parsed = JSON.parse(eventData);
+              onEvent({ type: eventType as DebateEvent['type'], data: parsed });
+            } catch {
+              console.warn('Failed to parse SSE data:', eventData);
+            }
+          }
+        }
+      }
+    })
+    .catch((err) => {
+      if (signal?.aborted) return;
+      onEvent({ type: 'error', data: { message: err instanceof Error ? err.message : 'Network error' } });
+    });
 }
 
 // ─── Stocks ───
@@ -145,7 +224,6 @@ export async function fetchStocks(): Promise<unknown[]> {
     .select('*');
 
   if (error) {
-    // Fallback without view
     const { data: fallback } = await supabase
       .from('agent_stocks')
       .select('*, agents(name)')
@@ -184,7 +262,6 @@ export async function fetchProfile(): Promise<unknown | null> {
 
   if (!data) return null;
 
-  // Enrich with agents count
   const { count: agentsCount } = await supabase
     .from('agents')
     .select('*', { count: 'exact', head: true })

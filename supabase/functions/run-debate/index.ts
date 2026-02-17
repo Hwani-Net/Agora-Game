@@ -4,8 +4,9 @@
  * AI-powered debate between two agents using Gemini 2.0 Flash.
  * Handles: auto-matching, 3-round debate, AI judging, ELO updates.
  *
- * Usage: supabase.functions.invoke('run-debate', { body: { mode: 'auto' } })
- *   or: supabase.functions.invoke('run-debate', { body: { agent1_id, agent2_id, topic } })
+ * Supports two modes:
+ * - Standard: returns full result as JSON
+ * - Streaming: returns SSE events as each round progresses (body.stream = true)
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
@@ -172,7 +173,6 @@ function buildJudgePrompt(): string {
 async function findMatch(
   supabase: ReturnType<typeof createClient>,
 ): Promise<{ agent1: Agent; agent2: Agent } | null> {
-  // Get random agents, preferring similar ELO
   const { data: agents, error } = await supabase
     .from("agents")
     .select("*")
@@ -181,10 +181,9 @@ async function findMatch(
 
   if (error || !agents || agents.length < 2) return null;
 
-  // Shuffle for randomness
   const shuffled = agents.sort(() => Math.random() - 0.5);
 
-  // Try to find two agents with similar ELO (within ±200), different owners
+  // Prefer similar ELO (±200), different owners
   for (let i = 0; i < shuffled.length; i++) {
     for (let j = i + 1; j < shuffled.length; j++) {
       const diff = Math.abs(shuffled[i].elo_score - shuffled[j].elo_score);
@@ -203,62 +202,272 @@ async function findMatch(
     }
   }
 
-  // Last resort: any two agents
   return { agent1: shuffled[0], agent2: shuffled[1] };
+}
+
+// ─── SSE Helper ───
+function sseEvent(event: string, data: unknown): string {
+  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+}
+
+// ─── Run Debate Core (shared by both modes) ───
+async function runDebateCore(
+  supabase: ReturnType<typeof createClient>,
+  geminiApiKey: string,
+  agent1: Agent,
+  agent2: Agent,
+  debateTopic: string,
+  debateId: string,
+  emit?: (event: string, data: unknown) => void,
+) {
+  // Create debate record
+  await supabase.from("debates").insert({
+    id: debateId,
+    topic: debateTopic,
+    agent1_id: agent1.id,
+    agent2_id: agent2.id,
+    status: "in_progress",
+    rounds: [],
+  });
+
+  // 3 Rounds of Debate
+  const rounds: DebateRound[] = [];
+  const roundLabels = ["주장", "반박", "최종 변론"];
+
+  for (let round = 1; round <= 3; round++) {
+    const roundLabel = roundLabels[round - 1];
+    const previousContext = rounds
+      .map(
+        (r) =>
+          `[라운드 ${r.round}]\n${agent1.name}: ${r.agent1_argument}\n${agent2.name}: ${r.agent2_argument}`,
+      )
+      .join("\n\n");
+
+    // Emit round start
+    emit?.("round_start", { round, label: roundLabel });
+
+    // Agent 1 speaks
+    emit?.("speaking", {
+      round,
+      agent: "agent1",
+      name: agent1.name,
+      faction: agent1.faction,
+    });
+
+    const agent1Argument = await callGemini(
+      geminiApiKey,
+      buildAgentPrompt(agent1),
+      `토론 주제: "${debateTopic}"\n\n이번은 라운드 ${round} (${roundLabel})입니다.\n${previousContext ? `\n이전 토론 내용:\n${previousContext}\n` : ""}\n${roundLabel}을 해주세요.`,
+      512,
+      0.9,
+    );
+
+    emit?.("argument", {
+      round,
+      agent: "agent1",
+      name: agent1.name,
+      text: agent1Argument,
+    });
+
+    // Agent 2 speaks
+    emit?.("speaking", {
+      round,
+      agent: "agent2",
+      name: agent2.name,
+      faction: agent2.faction,
+    });
+
+    const agent2Argument = await callGemini(
+      geminiApiKey,
+      buildAgentPrompt(agent2),
+      `토론 주제: "${debateTopic}"\n\n이번은 라운드 ${round} (${roundLabel})입니다.\n${previousContext ? `\n이전 토론 내용:\n${previousContext}\n` : ""}${agent1.name}의 ${roundLabel}: "${agent1Argument}"\n\n이에 대한 ${roundLabel}을 해주세요.`,
+      512,
+      0.9,
+    );
+
+    emit?.("argument", {
+      round,
+      agent: "agent2",
+      name: agent2.name,
+      text: agent2Argument,
+    });
+
+    rounds.push({ round, agent1_argument: agent1Argument, agent2_argument: agent2Argument });
+  }
+
+  // AI Judge
+  emit?.("judging", { message: "AI 심판이 판정 중..." });
+
+  const fullDebateText = rounds
+    .map(
+      (r) =>
+        `--- 라운드 ${r.round} ---\n[${agent1.name}]: ${r.agent1_argument}\n[${agent2.name}]: ${r.agent2_argument}`,
+    )
+    .join("\n\n");
+
+  const judgeRaw = await callGemini(
+    geminiApiKey,
+    buildJudgePrompt(),
+    `토론 주제: "${debateTopic}"\n\n${fullDebateText}\n\n이 토론을 평가하고 JSON 형식으로 판정해주세요.`,
+    512,
+    0.3,
+  );
+
+  let judgeResult: JudgeResult;
+  try {
+    const jsonMatch = judgeRaw.match(/\{[\s\S]*\}/);
+    judgeResult = JSON.parse(jsonMatch?.[0] ?? judgeRaw);
+  } catch {
+    judgeResult = {
+      winner: "agent1",
+      reasoning: judgeRaw,
+      scores: {
+        agent1: { logic: 7, evidence: 7, persuasion: 7 },
+        agent2: { logic: 6, evidence: 6, persuasion: 6 },
+      },
+    };
+  }
+
+  const winnerId = judgeResult.winner === "agent1" ? agent1.id : agent2.id;
+  const loserId = judgeResult.winner === "agent1" ? agent2.id : agent1.id;
+  const winnerAgent = judgeResult.winner === "agent1" ? agent1 : agent2;
+  const loserAgent = judgeResult.winner === "agent1" ? agent2 : agent1;
+
+  // ELO Updates
+  const eloResult = calculateElo(winnerAgent.elo_score, loserAgent.elo_score);
+
+  await supabase
+    .from("agents")
+    .update({
+      elo_score: eloResult.winnerElo,
+      tier: getTierFromElo(eloResult.winnerElo),
+      wins: winnerAgent.wins + 1,
+      total_debates: winnerAgent.total_debates + 1,
+    })
+    .eq("id", winnerId);
+
+  await supabase
+    .from("agents")
+    .update({
+      elo_score: eloResult.loserElo,
+      tier: getTierFromElo(eloResult.loserElo),
+      losses: loserAgent.losses + 1,
+      total_debates: loserAgent.total_debates + 1,
+    })
+    .eq("id", loserId);
+
+  // Update debate record
+  await supabase
+    .from("debates")
+    .update({
+      rounds,
+      judge_reasoning: judgeResult.reasoning,
+      winner_id: winnerId,
+      elo_change_winner: eloResult.winnerDelta,
+      elo_change_loser: eloResult.loserDelta,
+      status: "completed",
+      completed_at: new Date().toISOString(),
+    })
+    .eq("id", debateId);
+
+  // Update stock prices
+  const { data: winnerStock } = await supabase
+    .from("agent_stocks")
+    .select("*")
+    .eq("agent_id", winnerId)
+    .single();
+
+  if (winnerStock) {
+    const priceBoost = winnerStock.current_price * 0.02;
+    await supabase
+      .from("agent_stocks")
+      .update({
+        current_price: winnerStock.current_price + priceBoost,
+        market_cap: (winnerStock.current_price + priceBoost) * winnerStock.total_shares,
+        price_change_24h: (priceBoost / winnerStock.current_price) * 100,
+      })
+      .eq("id", winnerStock.id);
+  }
+
+  const { data: loserStock } = await supabase
+    .from("agent_stocks")
+    .select("*")
+    .eq("agent_id", loserId)
+    .single();
+
+  if (loserStock) {
+    const priceDrop = loserStock.current_price * 0.01;
+    await supabase
+      .from("agent_stocks")
+      .update({
+        current_price: loserStock.current_price - priceDrop,
+        market_cap: (loserStock.current_price - priceDrop) * loserStock.total_shares,
+        price_change_24h: (-priceDrop / loserStock.current_price) * 100,
+      })
+      .eq("id", loserStock.id);
+  }
+
+  // Final result
+  const result = {
+    debateId,
+    topic: debateTopic,
+    agent1: { id: agent1.id, name: agent1.name, faction: agent1.faction },
+    agent2: { id: agent2.id, name: agent2.name, faction: agent2.faction },
+    rounds,
+    winner: {
+      id: winnerId,
+      name: winnerAgent.name,
+      eloChange: eloResult.winnerDelta,
+      newElo: eloResult.winnerElo,
+    },
+    loser: {
+      id: loserId,
+      name: loserAgent.name,
+      eloChange: eloResult.loserDelta,
+      newElo: eloResult.loserElo,
+    },
+    scores: judgeResult.scores,
+    reasoning: judgeResult.reasoning,
+  };
+
+  emit?.("result", result);
+  return result;
 }
 
 // ─── Main Handler ───
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Get API key from environment
     const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!geminiApiKey) {
-      throw new Error("GEMINI_API_KEY not configured in Supabase Vault");
-    }
+    if (!geminiApiKey) throw new Error("GEMINI_API_KEY not configured");
 
-    // Create Supabase admin client (service role)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Parse request body
     const body = await req.json();
-    const { mode, agent1_id, agent2_id, topic } = body;
+    const { mode, agent1_id, agent2_id, topic, stream } = body;
 
+    // ─── Match agents ───
     let agent1: Agent;
     let agent2: Agent;
 
     if (mode === "auto") {
-      // Auto-match: find two compatible agents
       const match = await findMatch(supabase);
       if (!match) {
         return new Response(
-          JSON.stringify({
-            error: "매칭 가능한 에이전트가 부족합니다. 최소 2개 필요합니다.",
-          }),
+          JSON.stringify({ error: "매칭 가능한 에이전트가 부족합니다." }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
       agent1 = match.agent1;
       agent2 = match.agent2;
     } else {
-      // Manual: fetch specified agents
-      const { data: a1, error: e1 } = await supabase
-        .from("agents")
-        .select("*")
-        .eq("id", agent1_id)
-        .single();
-      const { data: a2, error: e2 } = await supabase
-        .from("agents")
-        .select("*")
-        .eq("id", agent2_id)
-        .single();
-
+      const { data: a1, error: e1 } = await supabase.from("agents").select("*").eq("id", agent1_id).single();
+      const { data: a2, error: e2 } = await supabase.from("agents").select("*").eq("id", agent2_id).single();
       if (e1 || e2 || !a1 || !a2) {
         return new Response(
           JSON.stringify({ error: "에이전트를 찾을 수 없습니다." }),
@@ -272,216 +481,52 @@ Deno.serve(async (req: Request) => {
     const debateTopic = topic || getRandomTopic();
     const debateId = crypto.randomUUID();
 
-    // Create debate record (in_progress)
-    await supabase.from("debates").insert({
-      id: debateId,
-      topic: debateTopic,
-      agent1_id: agent1.id,
-      agent2_id: agent2.id,
-      status: "in_progress",
-      rounds: [],
-    });
+    // ─── STREAMING MODE ───
+    if (stream) {
+      const encoder = new TextEncoder();
+      const readableStream = new ReadableStream({
+        async start(controller) {
+          const emit = (event: string, data: unknown) => {
+            try {
+              controller.enqueue(encoder.encode(sseEvent(event, data)));
+            } catch {
+              // Stream may have been closed by client
+            }
+          };
 
-    // ─── 3 Rounds of Debate ───
-    const rounds: DebateRound[] = [];
+          try {
+            // Send initial match info
+            emit("matched", {
+              debateId,
+              topic: debateTopic,
+              agent1: { id: agent1.id, name: agent1.name, faction: agent1.faction, elo: agent1.elo_score, tier: agent1.tier },
+              agent2: { id: agent2.id, name: agent2.name, faction: agent2.faction, elo: agent2.elo_score, tier: agent2.tier },
+            });
 
-    for (let round = 1; round <= 3; round++) {
-      const roundLabel =
-        round === 1 ? "주장" : round === 2 ? "반박" : "최종 변론";
-      const previousContext = rounds
-        .map(
-          (r) =>
-            `[라운드 ${r.round}]\n${agent1.name}: ${r.agent1_argument}\n${agent2.name}: ${r.agent2_argument}`,
-        )
-        .join("\n\n");
+            await runDebateCore(supabase, geminiApiKey, agent1, agent2, debateTopic, debateId, emit);
 
-      // Agent 1 speaks
-      const agent1Argument = await callGemini(
-        geminiApiKey,
-        buildAgentPrompt(agent1),
-        `토론 주제: "${debateTopic}"\n\n이번은 라운드 ${round} (${roundLabel})입니다.\n${previousContext ? `\n이전 토론 내용:\n${previousContext}\n` : ""}\n${roundLabel}을 해주세요.`,
-        512,
-        0.9,
-      );
+            emit("complete", { debateId });
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            emit("error", { message });
+          } finally {
+            controller.close();
+          }
+        },
+      });
 
-      // Agent 2 speaks (with agent1's argument as context)
-      const agent2Argument = await callGemini(
-        geminiApiKey,
-        buildAgentPrompt(agent2),
-        `토론 주제: "${debateTopic}"\n\n이번은 라운드 ${round} (${roundLabel})입니다.\n${previousContext ? `\n이전 토론 내용:\n${previousContext}\n` : ""}${agent1.name}의 ${roundLabel}: "${agent1Argument}"\n\n이에 대한 ${roundLabel}을 해주세요.`,
-        512,
-        0.9,
-      );
-
-      rounds.push({
-        round,
-        agent1_argument: agent1Argument,
-        agent2_argument: agent2Argument,
+      return new Response(readableStream, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
       });
     }
 
-    // ─── AI Judge ───
-    const fullDebateText = rounds
-      .map(
-        (r) =>
-          `--- 라운드 ${r.round} ---\n[${agent1.name}]: ${r.agent1_argument}\n[${agent2.name}]: ${r.agent2_argument}`,
-      )
-      .join("\n\n");
-
-    const judgeRaw = await callGemini(
-      geminiApiKey,
-      buildJudgePrompt(),
-      `토론 주제: "${debateTopic}"\n\n${fullDebateText}\n\n이 토론을 평가하고 JSON 형식으로 판정해주세요.`,
-      512,
-      0.3,
-    );
-
-    // Parse judge result
-    let judgeResult: JudgeResult;
-    try {
-      const jsonMatch = judgeRaw.match(/\{[\s\S]*\}/);
-      judgeResult = JSON.parse(jsonMatch?.[0] ?? judgeRaw);
-    } catch {
-      // Fallback if parsing fails
-      judgeResult = {
-        winner: "agent1",
-        reasoning: judgeRaw,
-        scores: {
-          agent1: { logic: 7, evidence: 7, persuasion: 7 },
-          agent2: { logic: 6, evidence: 6, persuasion: 6 },
-        },
-      };
-    }
-
-    const winnerId =
-      judgeResult.winner === "agent1" ? agent1.id : agent2.id;
-    const loserId =
-      judgeResult.winner === "agent1" ? agent2.id : agent1.id;
-    const winnerAgent =
-      judgeResult.winner === "agent1" ? agent1 : agent2;
-    const loserAgent =
-      judgeResult.winner === "agent1" ? agent2 : agent1;
-
-    // ─── ELO Updates ───
-    const eloResult = calculateElo(
-      winnerAgent.elo_score,
-      loserAgent.elo_score,
-    );
-
-    // Update winner agent
-    await supabase
-      .from("agents")
-      .update({
-        elo_score: eloResult.winnerElo,
-        tier: getTierFromElo(eloResult.winnerElo),
-        wins: winnerAgent.wins + 1,
-        total_debates: winnerAgent.total_debates + 1,
-      })
-      .eq("id", winnerId);
-
-    // Update loser agent
-    await supabase
-      .from("agents")
-      .update({
-        elo_score: eloResult.loserElo,
-        tier: getTierFromElo(eloResult.loserElo),
-        losses: loserAgent.losses + 1,
-        total_debates: loserAgent.total_debates + 1,
-      })
-      .eq("id", loserId);
-
-    // ─── Update debate record ───
-    await supabase
-      .from("debates")
-      .update({
-        rounds,
-        judge_reasoning: judgeResult.reasoning,
-        winner_id: winnerId,
-        elo_change_winner: eloResult.winnerDelta,
-        elo_change_loser: eloResult.loserDelta,
-        status: "completed",
-        completed_at: new Date().toISOString(),
-      })
-      .eq("id", debateId);
-
-    // ─── Update stock price (if stock exists for the winner) ───
-    const { data: winnerStock } = await supabase
-      .from("agent_stocks")
-      .select("*")
-      .eq("agent_id", winnerId)
-      .single();
-
-    if (winnerStock) {
-      const priceBoost = winnerStock.current_price * 0.02; // +2% on win
-      await supabase
-        .from("agent_stocks")
-        .update({
-          current_price: winnerStock.current_price + priceBoost,
-          market_cap:
-            (winnerStock.current_price + priceBoost) *
-            winnerStock.total_shares,
-          price_change_24h:
-            ((priceBoost / winnerStock.current_price) * 100),
-        })
-        .eq("id", winnerStock.id);
-    }
-
-    const { data: loserStock } = await supabase
-      .from("agent_stocks")
-      .select("*")
-      .eq("agent_id", loserId)
-      .single();
-
-    if (loserStock) {
-      const priceDrop = loserStock.current_price * 0.01; // -1% on loss
-      await supabase
-        .from("agent_stocks")
-        .update({
-          current_price: loserStock.current_price - priceDrop,
-          market_cap:
-            (loserStock.current_price - priceDrop) *
-            loserStock.total_shares,
-          price_change_24h:
-            ((-priceDrop / loserStock.current_price) * 100),
-        })
-        .eq("id", loserStock.id);
-    }
-
-    // ─── Return result ───
-    const result = {
-      id: debateId,
-      topic: debateTopic,
-      agent1: {
-        id: agent1.id,
-        name: agent1.name,
-        faction: agent1.faction,
-      },
-      agent2: {
-        id: agent2.id,
-        name: agent2.name,
-        faction: agent2.faction,
-      },
-      rounds,
-      judge: {
-        winner: winnerId,
-        winnerName: winnerAgent.name,
-        reasoning: judgeResult.reasoning,
-        scores: judgeResult.scores,
-      },
-      eloChanges: {
-        winner: {
-          id: winnerId,
-          delta: eloResult.winnerDelta,
-          newElo: eloResult.winnerElo,
-        },
-        loser: {
-          id: loserId,
-          delta: eloResult.loserDelta,
-          newElo: eloResult.loserElo,
-        },
-      },
-      status: "completed",
-    };
+    // ─── STANDARD MODE (backward-compatible) ───
+    const result = await runDebateCore(supabase, geminiApiKey, agent1, agent2, debateTopic, debateId);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -489,13 +534,9 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("Debate error:", message);
-
     return new Response(
       JSON.stringify({ error: message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

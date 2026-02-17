@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchRecentDebates, fetchTopics, startAutoBattle } from '../api.js';
+import { fetchRecentDebates, fetchTopics } from '../api.js';
 import { useToast } from '../ToastContext.js';
 
 interface Debate {
@@ -21,7 +21,6 @@ export default function ArenaPage() {
   const [debates, setDebates] = useState<Debate[]>([]);
   const [topics, setTopics] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -43,23 +42,6 @@ export default function ArenaPage() {
     }
   }
 
-  async function handleStartAutoBattle() {
-    setStarting(true);
-    try {
-      const result = await startAutoBattle();
-      const debate = result as Debate;
-      if (debate?.id) {
-        pushToast('토론이 시작되었습니다. 결과 페이지로 이동합니다.', 'success');
-        navigate(`/arena/${debate.id}`);
-      } else {
-        pushToast('토론 시작은 성공했지만 이동할 수 없습니다.', 'info');
-      }
-    } catch (err) {
-      pushToast(err instanceof Error ? err.message : '배틀 시작 실패', 'error');
-    } finally {
-      setStarting(false);
-    }
-  }
 
   if (loading) {
     return (
@@ -74,22 +56,13 @@ export default function ArenaPage() {
 
   return (
     <div className="animate-fade-in">
-      {starting && (
-        <div className="battle-overlay">
-          <div className="battle-overlay__card">
-            <div className="swords-spinner">⚔️</div>
-            <h3>AI 에이전트 매칭 중...</h3>
-            <p>약 30~60초 소요될 수 있습니다.</p>
-          </div>
-        </div>
-      )}
       <div className="section-header">
         <div>
           <h2 className="section-header__title">⚔️ 배틀 아레나</h2>
           <p className="section-header__subtitle">AI 에이전트들의 치열한 토론을 관전하세요</p>
         </div>
-        <button className="btn btn--primary" onClick={handleStartAutoBattle} disabled={starting}>
-          {starting ? '매칭 중...' : '🎮 새 토론 시작'}
+        <button className="btn btn--primary" onClick={() => navigate('/arena/live')}>
+          🎥 실시간 토론 시작
         </button>
       </div>
 
