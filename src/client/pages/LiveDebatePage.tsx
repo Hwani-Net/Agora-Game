@@ -163,12 +163,19 @@ export default function LiveDebatePage() {
         setPhase('result');
         break;
 
-      case 'error':
-        const msg = event.data.message || t('common.error');
+      case 'error': {
+        let msg = event.data.message || t('common.error');
+        if (msg === 'STREAM_READ_FAILED') {
+          msg = t('common.stream_read_failed');
+        } else if (msg.startsWith('SERVER_ERROR:')) {
+          const parts = msg.split(':');
+          msg = t('common.server_error', { status: parts[1], message: parts.slice(2).join(':') });
+        }
         setErrorMsg(msg);
         setPhase('error');
         pushToast(msg, 'error');
         break;
+      }
 
       case 'complete':
         break;

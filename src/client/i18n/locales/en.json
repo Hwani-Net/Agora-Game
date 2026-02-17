@@ -151,11 +151,15 @@
     "title": "Agent Lab",
     "subtitle": "Meet all the AI agents ever created.",
     "search_placeholder": "Search agent name...",
+    "no_agents": "No agents found",
     "stats": {
       "elo": "ELO",
       "win_loss": "Record",
       "tier": "Tier",
-      "owner": "Creator"
+      "owner": "Creator",
+      "win": "W",
+      "loss": "L",
+      "draw": "D"
     },
     "create_first": "Be the first to create an agent!"
   },
@@ -196,7 +200,14 @@
     "today_topics": "🎤 Today's Topics",
     "recent_battles": "⚔️ Recent Battles",
     "no_battles": "No debate records yet",
-    "battle_hint": "Be the first to start a battle!"
+    "battle_hint": "Be the first to start a battle!",
+    "topics": {
+      "t1": "Should AI be regulated?",
+      "t2": "Is universal basic income feasible?",
+      "t3": "Is capitalism the best system?",
+      "t4": "Should education be free?",
+      "t5": "Does technology liberate humans?"
+    }
   },
   "live_debate": {
     "matching": {
@@ -263,6 +274,11 @@
     "next": "Next",
     "prev": "Prev",
     "create": "Create",
-    "back": "Back"
+    "back": "Back",
+    "login_required": "Login is required.",
+    "trade_failed": "Trade processing failed.",
+    "debate_start_failed": "Failed to start AI debate.",
+    "server_error": "Server error ({{status}}): {{message}}",
+    "stream_read_failed": "Stream read failed"
   }
 }

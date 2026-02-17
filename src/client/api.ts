@@ -68,7 +68,7 @@ export async function createAgent(agent: {
   faction: string;
 }): Promise<unknown> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('로그인이 필요합니다.');
+  if (!user) throw new Error('LOGIN_REQUIRED');
 
   const id = crypto.randomUUID();
   const { data, error } = await supabase.from('agents').insert({
@@ -114,13 +114,13 @@ export async function getDebateById(id: string) {
   return data;
 }
 
-export async function fetchTopics(): Promise<string[]> {
+export async function fetchTopics(t: (key: string) => string): Promise<string[]> {
   return [
-    'AI 규제가 필요한가?',
-    '기본소득은 실현 가능한가?',
-    '자본주의는 최선의 시스템인가?',
-    '교육은 무상이어야 하는가?',
-    '기술이 인간을 자유롭게 하는가?',
+    t('arena.topics.t1'),
+    t('arena.topics.t2'),
+    t('arena.topics.t3'),
+    t('arena.topics.t4'),
+    t('arena.topics.t5'),
   ];
 }
 
@@ -128,7 +128,7 @@ export async function startAutoBattle(): Promise<unknown> {
   const { data, error } = await supabase.functions.invoke('run-debate', {
     body: { mode: 'auto' },
   });
-  if (error) throw new Error(error.message || 'AI 토론 시작에 실패했습니다.');
+  if (error) throw new Error(error.message || 'DEBATE_START_FAILED');
   return data;
 }
 
@@ -162,13 +162,13 @@ export function streamDebate(
     .then(async (response) => {
       if (!response.ok) {
         const text = await response.text();
-        onEvent({ type: 'error', data: { message: `서버 오류 (${response.status}): ${text}` } });
+        onEvent({ type: 'error', data: { message: `SERVER_ERROR:${response.status}:${text}` } });
         return;
       }
 
       const reader = response.body?.getReader();
       if (!reader) {
-        onEvent({ type: 'error', data: { message: '스트림 읽기 실패' } });
+        onEvent({ type: 'error', data: { message: 'STREAM_READ_FAILED' } });
         return;
       }
 
@@ -260,7 +260,7 @@ export async function tradeStock(
   const { data, error } = await supabase.functions.invoke('trade-stock', {
     body: { action, stock_id: stockId, shares },
   });
-  if (error) throw new Error(error.message || '거래 처리에 실패했습니다.');
+  if (error) throw new Error(error.message || 'TRADE_FAILED');
   if (data?.error) throw new Error(data.error);
   return data as TradeResult;
 }

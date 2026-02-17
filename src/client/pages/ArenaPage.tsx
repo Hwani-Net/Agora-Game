@@ -24,13 +24,14 @@ export default function ArenaPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
 
   async function loadData() {
     try {
       const [recent, topicList] = await Promise.all([
         fetchRecentDebates(10),
-        fetchTopics(),
+        fetchTopics(t),
       ]);
       setDebates(Array.isArray(recent) ? recent as Debate[] : []);
       setTopics(Array.isArray(topicList) ? topicList : []);

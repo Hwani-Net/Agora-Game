@@ -144,11 +144,11 @@ export default function AgentsPage() {
                 <div className="stat" style={{ textAlign: 'center' }}>
                   <span className="stat__label">{t('agents.stats.win_loss')}</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.875rem', fontWeight: 600 }}>
-                    <span style={{ color: 'var(--success)' }}>{agent.wins}W</span>
+                    <span style={{ color: 'var(--success)' }}>{agent.wins}{t('agents.stats.win')}</span>
                     {' '}
-                    <span style={{ color: 'var(--danger)' }}>{agent.losses}L</span>
+                    <span style={{ color: 'var(--danger)' }}>{agent.losses}{t('agents.stats.loss')}</span>
                     {' '}
-                    <span style={{ color: 'var(--text-muted)' }}>{agent.draws}D</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{agent.draws}{t('agents.stats.draw')}</span>
                   </span>
                 </div>
               </div>
