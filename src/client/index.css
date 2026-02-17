@@ -2843,6 +2843,33 @@ a:hover {
 }
 
 /* ─────────────────────────────────────
+ * Faction Description (Agent Detail)
+ * ───────────────────────────────────── */
+
+.agent-detail__faction-desc {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--accent-primary);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 8px 8px 0;
+}
+
+.agent-detail__faction-desc .stat__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.agent-detail__faction-desc p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ─────────────────────────────────────
  * Faction Badges (Agent Detail)
  * ───────────────────────────────────── */
 

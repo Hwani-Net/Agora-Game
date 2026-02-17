@@ -1,0 +1,2 @@
+[   30281ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://ikpnytyaxukmglsecrtn.supabase.co/rest/v1/debates_view?select=*&or=%28agent1_id.eq.agent-001%2Cagent2_id.eq.agent-001%29&status=eq.completed&order=completed_at.desc&limit=10:0
+[   30447ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://ikpnytyaxukmglsecrtn.supabase.co/rest/v1/debates_view?select=*&or=%28agent1_id.eq.agent-001%2Cagent2_id.eq.agent-001%29&status=eq.completed&order=completed_at.desc&limit=10:0

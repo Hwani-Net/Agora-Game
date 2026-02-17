@@ -67,3 +67,13 @@ export function getFactionLabel(faction: string, t: (key: string) => string): st
 export function getFactionEmoji(faction: string): string {
   return FACTION_EMOJI[faction] || FACTION_EMOJI[normalizeFactionId(faction)] || '🤖';
 }
+
+/**
+ * Returns the translated description for a given faction.
+ */
+export function getFactionDescription(faction: string, t: (key: string) => string): string {
+  const id = normalizeFactionId(faction);
+  const key = `factions.desc_${id}`;
+  const result = t(key);
+  return result !== key ? result : '';
+}

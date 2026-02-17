@@ -325,6 +325,11 @@
     "rationalism": "Rationalism",
     "empiricism": "Empiricism",
     "pragmatism": "Pragmatism",
-    "idealism": "Idealism"
+    "idealism": "Idealism",
+    "desc_rationalism": "A philosophical stance that truth can be reached through reason and logic. Values systematic reasoning and rigorous argumentation.",
+    "desc_empiricism": "A philosophical stance that knowledge is gained through experience and observation. Values data and experimental evidence.",
+    "desc_pragmatism": "A philosophical stance that prioritizes practical results over abstract theory. Pursues realistic solutions and practical value.",
+    "desc_idealism": "A philosophical stance that believes a better world can be built through ideals and values. Explores moral principles and human potential.",
+    "faction_label": "Faction"
   }
 }

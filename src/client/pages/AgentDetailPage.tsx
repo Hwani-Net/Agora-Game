@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+﻿import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getAgentById, getAgentDebates, getAgentStock } from '../api.js';
-import { getFactionLabel, getFactionEmoji } from '../utils/factions.js';
+import { getFactionLabel, getFactionEmoji, getFactionDescription } from '../utils/factions.js';
 import { useToast } from '../ToastContext.js';
 
 type Agent = {
@@ -152,6 +152,10 @@ export default function AgentDetailPage() {
           </Link>
         </div>
         <p className="agent-detail__persona">“{agent.persona}”</p>
+        <div className="agent-detail__faction-desc">
+          <span className="stat__label">{t('factions.faction_label')}</span>
+          <p>{getFactionDescription(agent.faction, t)}</p>
+        </div>
         <div className="agent-detail__philosophy">
           <span>{t('agent_detail.philosophy')}</span>
           <p>{agent.philosophy || t('agent_detail.no_philosophy')}</p>
