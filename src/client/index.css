@@ -3329,3 +3329,81 @@ a:hover {
     font-size: 0.8rem;
   }
 }
+
+/* ═══════════════════════════════════════════════ */
+/*  Phase 3 - Agent Cheer Button                  */
+/* ═══════════════════════════════════════════════ */
+
+.agent-detail__cheer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.cheer-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-xl);
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.15));
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.cheer-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.3));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.cheer-btn:hover::before {
+  opacity: 1;
+}
+.cheer-btn:hover {
+  border-color: rgba(251, 191, 36, 0.5);
+  transform: scale(1.04);
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.2);
+}
+.cheer-btn:active {
+  transform: scale(0.96);
+}
+.cheer-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+.cheer-btn__emoji {
+  font-size: 1.3rem;
+  position: relative;
+  z-index: 1;
+  animation: cheer-bounce 2s ease-in-out infinite;
+}
+.cheer-btn__count {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1rem;
+  position: relative;
+  z-index: 1;
+  color: var(--tier-gold);
+}
+.cheer-btn__label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+@keyframes cheer-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}

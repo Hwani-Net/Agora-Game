@@ -1,9 +1,10 @@
 ﻿import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getAgentById, getAgentDebates, getAgentStock } from '../api.js';
+import { getAgentById, getAgentDebates, getAgentStock, getAgentCheers, cheerAgent } from '../api.js';
 import { getFactionLabel, getFactionEmoji, getFactionDescription } from '../utils/factions.js';
 import { useToast } from '../ToastContext.js';
+import { useAuthContext } from '../AuthContext.js';
 
 type Agent = {
   id: string;
@@ -47,6 +48,9 @@ export default function AgentDetailPage() {
   const [debates, setDebates] = useState<Debate[]>([]);
   const [stock, setStock] = useState<Stock | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuthContext();
+  const [cheerCount, setCheerCount] = useState(0);
+  const [cheering, setCheering] = useState(false);
 
   const formatNum = useCallback((value?: number | null) => {
     if (value == null || Number.isNaN(value)) return '-';
@@ -89,6 +93,12 @@ export default function AgentDetailPage() {
         if (active) setStock(null);
       });
 
+    getAgentCheers(agentId)
+      .then((result) => {
+        if (active) setCheerCount(result.count);
+      })
+      .catch(() => {});
+
     return () => {
       active = false;
     };
@@ -107,6 +117,20 @@ export default function AgentDetailPage() {
   function getResultLabel(res: 'win' | 'loss' | 'draw') {
     return t(`agent_detail.debates.result.${res}`);
   }
+
+  const handleCheer = useCallback(async () => {
+    if (!user || !agentId || cheering) return;
+    setCheering(true);
+    try {
+      await cheerAgent(agentId, user.id);
+      setCheerCount((prev) => prev + 1);
+      pushToast(t('agent_detail.cheer_sent'), 'success');
+    } catch {
+      pushToast(t('common.error'), 'error');
+    } finally {
+      setCheering(false);
+    }
+  }, [user, agentId, cheering, pushToast, t]);
 
   if (loading) {
     return (
@@ -159,6 +183,18 @@ export default function AgentDetailPage() {
         <div className="agent-detail__philosophy">
           <span>{t('agent_detail.philosophy')}</span>
           <p>{agent.philosophy || t('agent_detail.no_philosophy')}</p>
+        </div>
+        <div className="agent-detail__cheer">
+          <button
+            className="cheer-btn"
+            onClick={handleCheer}
+            disabled={cheering || !user}
+            title={user ? t('agent_detail.cheer_action') : t('agent_detail.cheer_login')}
+          >
+            <span className="cheer-btn__emoji">📣</span>
+            <span className="cheer-btn__count">{cheerCount.toLocaleString()}</span>
+          </button>
+          <span className="cheer-btn__label">{t('agent_detail.cheer_label')}</span>
         </div>
       </section>
 

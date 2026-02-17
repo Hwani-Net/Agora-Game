@@ -98,6 +98,47 @@ export async function fetchTopAgents(limit = 5): Promise<unknown[]> {
   return data || [];
 }
 
+// ─── Agent Cheers ───
+
+export async function getAgentCheers(agentId: string): Promise<{ count: number; recent: unknown[] }> {
+  const { count, error: countError } = await supabase
+    .from('agent_cheers')
+    .select('*', { count: 'exact', head: true })
+    .eq('agent_id', agentId);
+
+  if (countError) throw countError;
+
+  const { data: recent, error: recentError } = await supabase
+    .from('agent_cheers')
+    .select('id, message, created_at, user_id')
+    .eq('agent_id', agentId)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  if (recentError) throw recentError;
+
+  return { count: count ?? 0, recent: recent || [] };
+}
+
+export async function cheerAgent(agentId: string, userId: string, message = ''): Promise<void> {
+  const id = `cheer_${userId}_${agentId}_${Date.now()}`;
+  const { error } = await supabase
+    .from('agent_cheers')
+    .insert({ id, user_id: userId, agent_id: agentId, message });
+
+  if (error) throw error;
+}
+
+export async function getUserCheerCount(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('agent_cheers')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
 // ─── Debates ───
 
 export async function fetchRecentDebates(limit = 10): Promise<unknown[]> {

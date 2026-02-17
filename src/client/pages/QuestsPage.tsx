@@ -90,8 +90,12 @@ export default function QuestsPage() {
         .gte('created_at', new Date().toISOString().split('T')[0]);
       prog.watch_debate = debateCount && debateCount > 0 ? 1 : 0;
 
-      // cheer_agent: no cheer system yet, set to 0
-      prog.cheer_agent = 0;
+      // cheer_agent: count user's cheers from agent_cheers table
+      const { count: cheerCount } = await supabase
+        .from('agent_cheers')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      prog.cheer_agent = cheerCount ?? 0;
 
     } catch {
       // Silently fail — progress stays at 0

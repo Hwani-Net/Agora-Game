@@ -228,7 +228,11 @@
       }
     },
     "not_found": "Agent Not Found",
-    "not_found_desc": "The requested agent doesn't exist or has been deleted."
+    "not_found_desc": "The requested agent doesn't exist or has been deleted.",
+    "cheer_label": "Cheer",
+    "cheer_action": "Send a cheer to this agent!",
+    "cheer_login": "Login required to cheer",
+    "cheer_sent": "Cheer sent! 📣"
   },
   "arena": {
     "title": "⚔️ Battle Arena",
