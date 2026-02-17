@@ -277,41 +277,60 @@ export interface PortfolioItem {
 }
 
 export async function fetchPortfolio(): Promise<PortfolioItem[]> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
 
-  const { data: ownership } = await supabase
-    .from('stock_ownership')
-    .select('*, agent_stocks(current_price, agent_id, agents:agent_id(name))')
-    .eq('user_id', user.id);
+    const { data: ownership, error } = await supabase
+      .from('stock_ownership')
+      .select('stock_id, shares_owned, avg_buy_price')
+      .eq('user_id', user.id);
 
-  if (!ownership || ownership.length === 0) return [];
+    if (error || !ownership || ownership.length === 0) return [];
 
-  return ownership.map((o: Record<string, unknown>) => {
-    const stock = o.agent_stocks as Record<string, unknown> | null;
-    const currentPrice = (stock?.current_price as number) ?? 0;
-    const sharesOwned = (o.shares_owned as number) ?? 0;
-    const avgBuyPrice = (o.avg_buy_price as number) ?? 0;
-    const totalValue = currentPrice * sharesOwned;
-    const costBasis = avgBuyPrice * sharesOwned;
-    const profit = totalValue - costBasis;
-    const profitPct = costBasis > 0 ? (profit / costBasis) * 100 : 0;
+    // Fetch stock data separately for reliability
+    const stockIds = ownership.map((o) => o.stock_id);
+    const { data: stocks } = await supabase
+      .from('agent_stocks')
+      .select('id, current_price, agent_id')
+      .in('id', stockIds);
 
-    // Extract agent name from nested join
-    const agents = stock?.agents as { name?: string } | null;
-    const agentName = agents?.name || 'Unknown';
+    // Fetch agent names
+    const agentIds = (stocks || []).map((s) => s.agent_id);
+    const { data: agents } = await supabase
+      .from('agents')
+      .select('id, name')
+      .in('id', agentIds);
 
-    return {
-      stock_id: o.stock_id as string,
-      agent_name: agentName,
-      shares_owned: sharesOwned,
-      avg_buy_price: avgBuyPrice,
-      current_price: currentPrice,
-      total_value: totalValue,
-      profit,
-      profit_pct: profitPct,
-    };
-  });
+    const stockMap = new Map((stocks || []).map((s) => [s.id, s]));
+    const agentMap = new Map((agents || []).map((a) => [a.id, a.name]));
+
+    return ownership.map((o) => {
+      const stock = stockMap.get(o.stock_id);
+      const currentPrice = stock?.current_price ?? 0;
+      const sharesOwned = o.shares_owned ?? 0;
+      const avgBuyPrice = o.avg_buy_price ?? 0;
+      const totalValue = currentPrice * sharesOwned;
+      const costBasis = avgBuyPrice * sharesOwned;
+      const profit = totalValue - costBasis;
+      const profitPct = costBasis > 0 ? (profit / costBasis) * 100 : 0;
+      const agentName = stock ? (agentMap.get(stock.agent_id) || 'Unknown') : 'Unknown';
+
+      return {
+        stock_id: o.stock_id,
+        agent_name: agentName,
+        shares_owned: sharesOwned,
+        avg_buy_price: avgBuyPrice,
+        current_price: currentPrice,
+        total_value: totalValue,
+        profit,
+        profit_pct: profitPct,
+      };
+    });
+  } catch (err) {
+    console.error('fetchPortfolio error:', err);
+    return [];
+  }
 }
 
 // ─── Quests ───

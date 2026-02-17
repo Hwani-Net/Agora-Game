@@ -40,7 +40,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const sharesNum = parseInt(shares, 10);
+    const sharesNum = typeof shares === 'number' ? shares : parseInt(String(shares), 10);
     if (isNaN(sharesNum) || sharesNum <= 0 || sharesNum > 1000) {
       return new Response(
         JSON.stringify({ error: '거래 수량은 1~1000 사이여야 합니다.' }),
