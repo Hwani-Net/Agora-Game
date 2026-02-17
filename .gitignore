@@ -8,3 +8,4 @@ dist/
 .wrangler/
 *.png
 *.jpg
+supabase/.temp/

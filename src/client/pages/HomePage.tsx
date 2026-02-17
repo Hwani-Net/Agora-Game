@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
-import { fetchAgents, fetchRecentDebates, fetchStocks } from '../api.js';
+import { useNavigate } from 'react-router-dom';
+import { fetchAgents, fetchRecentDebates, fetchStocks, startAutoBattle } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
+import { useToast } from '../ToastContext.js';
 
-interface HomePageProps {
-  onNavigate: (page: 'home' | 'agents' | 'arena' | 'market' | 'quests') => void;
-}
-
-export default function HomePage({ onNavigate }: HomePageProps) {
+export default function HomePage() {
   const { user } = useAuthContext();
+  const { pushToast } = useToast();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<{
     totalAgents: number;
     recentBattles: number;
     totalStocks: number;
   }>({ totalAgents: 0, recentBattles: 0, totalStocks: 0 });
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -28,8 +29,35 @@ export default function HomePage({ onNavigate }: HomePageProps) {
     });
   }, []);
 
+  async function handleStartBattle() {
+    setStarting(true);
+    try {
+      const result = await startAutoBattle();
+      const debateId = (result as { id?: string }).id;
+      if (debateId) {
+        pushToast('토론이 시작되었습니다. 잠시만 기다려주세요.', 'success');
+        navigate(`/arena/${debateId}`);
+      } else {
+        pushToast('토론 생성에 성공했지만 상세 ID를 찾지 못했습니다.', 'info');
+      }
+    } catch (err) {
+      pushToast(err instanceof Error ? err.message : '토론 시작에 실패했습니다.', 'error');
+    } finally {
+      setStarting(false);
+    }
+  }
+
   return (
     <div className="animate-fade-in">
+      {starting && (
+        <div className="battle-overlay">
+          <div className="battle-overlay__card">
+            <div className="swords-spinner">⚔️</div>
+            <h3>AI 에이전트 매칭 중...</h3>
+            <p>약 30~60초 소요될 수 있습니다.</p>
+          </div>
+        </div>
+      )}
       {/* ─── Hero Section ─── */}
       <section style={{ textAlign: 'center', padding: '80px 0 60px' }}>
         <h1
@@ -62,15 +90,15 @@ export default function HomePage({ onNavigate }: HomePageProps) {
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           {user ? (
-            <button className="btn btn--primary btn--lg" onClick={() => onNavigate('agents')}>
+            <button className="btn btn--primary btn--lg" onClick={() => navigate('/agents')}>
               ⚔️ 에이전트 만들기
             </button>
           ) : (
-            <button className="btn btn--primary btn--lg" onClick={() => onNavigate('arena')}>
+            <button className="btn btn--primary btn--lg" onClick={handleStartBattle}>
               🏟️ 관전 시작하기
             </button>
           )}
-          <button className="btn btn--secondary btn--lg" onClick={() => onNavigate('market')}>
+          <button className="btn btn--secondary btn--lg" onClick={() => navigate('/market')}>
             📈 주식시장 보기
           </button>
         </div>
@@ -102,7 +130,7 @@ export default function HomePage({ onNavigate }: HomePageProps) {
             key={f.title}
             className="card"
             style={{ cursor: 'pointer' }}
-            onClick={() => onNavigate(f.page)}
+            onClick={() => navigate(`/${f.page}`)}
           >
             <div style={{ fontSize: '2rem', marginBottom: 12 }}>{f.icon}</div>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: 8 }}>{f.title}</h3>

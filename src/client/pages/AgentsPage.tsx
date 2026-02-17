@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchAgents, createAgent } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
+import { useToast } from '../ToastContext.js';
 
 interface Agent {
   id: string;
@@ -23,6 +25,8 @@ const FACTION_EMOJI: Record<string, string> = {
 
 export default function AgentsPage() {
   const { user } = useAuthContext();
+  const { pushToast } = useToast();
+  const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -58,7 +62,9 @@ export default function AgentsPage() {
       setForm({ name: '', persona: '', faction: '합리주의' });
       loadAgents();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Creation failed');
+      const message = err instanceof Error ? err.message : '에이전트 생성에 실패했습니다.';
+      setError(message);
+      pushToast(message, 'error');
     } finally {
       setCreating(false);
     }
@@ -69,7 +75,13 @@ export default function AgentsPage() {
   }
 
   if (loading) {
-    return <div className="loading-center"><div className="spinner" /></div>;
+    return (
+      <div className="grid grid--3">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="card skeleton" style={{ height: 220 }} />
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -148,8 +160,15 @@ export default function AgentsPage() {
         </div>
       ) : (
         <div className="grid grid--3">
-          {agents.map((agent) => (
-            <div key={agent.id} className="card card--agent">
+          {agents.map((agent, index) => (
+            <div
+              key={agent.id}
+              className="card card--agent stagger-item"
+              style={{ cursor: 'pointer', animationDelay: `${index * 0.08}s` }}
+              onClick={() => navigate(`/agents/${agent.id}`)}
+              role="button"
+              aria-label={`${agent.name} 프로필 보기`}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 12 }}>
                 <div>
                   <h3 style={{ fontSize: '1.075rem', fontWeight: 700 }}>

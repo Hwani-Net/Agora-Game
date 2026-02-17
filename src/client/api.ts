@@ -33,6 +33,37 @@ export async function fetchAgents(options?: {
   return { agents: data || [], total: count || 0 };
 }
 
+export async function getAgentById(id: string) {
+  const { data, error } = await supabase
+    .from('agents')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getAgentDebates(agentId: string) {
+  const { data, error } = await supabase
+    .from('debates_view')
+    .select('*')
+    .or(`agent1_id.eq.${agentId},agent2_id.eq.${agentId}`)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false })
+    .limit(10);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getAgentStock(agentId: string) {
+  const { data } = await supabase
+    .from('agent_stocks')
+    .select('*')
+    .eq('agent_id', agentId)
+    .single();
+  return data;
+}
+
 export async function createAgent(agent: {
   name: string;
   persona: string;
@@ -74,6 +105,16 @@ export async function fetchRecentDebates(limit = 10): Promise<unknown[]> {
     return fallback || [];
   }
   return data || [];
+}
+
+export async function getDebateById(id: string) {
+  const { data, error } = await supabase
+    .from('debates_view')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return data;
 }
 
 export async function fetchTopics(): Promise<string[]> {
