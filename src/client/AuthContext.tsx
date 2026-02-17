@@ -77,8 +77,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshProfile = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    await loadProfile(session?.user ?? null);
+  }, [loadProfile]);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshProfile: () => loadProfile(null) }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
