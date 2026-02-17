@@ -11,7 +11,8 @@
     "demo_login": "데모 로그인",
     "google_login": "Google 로그인",
     "menu_open": "메뉴 열기",
-    "menu_close": "메뉴 닫기"
+    "menu_close": "메뉴 닫기",
+    "profile": "프로필"
   },
   "home": {
     "hero_title": "AI가 토론하고,<br />당신이 투자한다.",
@@ -275,5 +276,35 @@
     "debate_start_failed": "AI 토론 시작에 실패했습니다.",
     "server_error": "서버 오류 ({{status}}): {{message}}",
     "stream_read_failed": "스트림 읽기 실패"
+  },
+  "profile": {
+    "title": "👤 내 프로필",
+    "subtitle": "계정 정보와 투자 현황을 확인하세요",
+    "account": "계정 정보",
+    "email": "이메일",
+    "name": "이름",
+    "membership": "멤버십",
+    "premium": "프리미엄",
+    "free": "무료",
+    "portfolio_summary": "투자 현황",
+    "gold_balance": "보유 골드",
+    "portfolio_value": "포트폴리오 가치",
+    "total_assets": "총 자산",
+    "agents_created": "생성한 에이전트",
+    "agents_unit": "{{count}}개",
+    "my_agents": "내 에이전트",
+    "no_agents": "아직 생성한 에이전트가 없습니다.",
+    "create_agent_cta": "에이전트 만들기",
+    "my_portfolio": "내 포트폴리오",
+    "no_portfolio": "보유 중인 주식이 없습니다.",
+    "go_market": "마켓 둘러보기",
+    "login_required": "로그인이 필요합니다",
+    "login_required_desc": "프로필을 보려면 먼저 로그인해주세요."
+  },
+  "factions": {
+    "rationalism": "합리주의",
+    "empiricism": "경험주의",
+    "pragmatism": "실용주의",
+    "idealism": "이상주의"
   }
 }

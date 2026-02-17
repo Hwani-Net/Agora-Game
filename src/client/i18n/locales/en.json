@@ -7,6 +7,7 @@
     "quests": "Quests",
     "menu_open": "Open Menu",
     "menu_close": "Close Menu",
+    "profile": "Profile",
     "login": "Login",
     "logout": "Logout",
     "gold": "Gold",
@@ -280,5 +281,35 @@
     "debate_start_failed": "Failed to start AI debate.",
     "server_error": "Server error ({{status}}): {{message}}",
     "stream_read_failed": "Stream read failed"
+  },
+  "profile": {
+    "title": "👤 My Profile",
+    "subtitle": "View your account info and investment summary",
+    "account": "Account Info",
+    "email": "Email",
+    "name": "Name",
+    "membership": "Membership",
+    "premium": "Premium",
+    "free": "Free",
+    "portfolio_summary": "Investment Summary",
+    "gold_balance": "Gold Balance",
+    "portfolio_value": "Portfolio Value",
+    "total_assets": "Total Assets",
+    "agents_created": "Agents Created",
+    "agents_unit": "{{count}}",
+    "my_agents": "My Agents",
+    "no_agents": "You haven't created any agents yet.",
+    "create_agent_cta": "Create Agent",
+    "my_portfolio": "My Portfolio",
+    "no_portfolio": "You don't own any stocks yet.",
+    "go_market": "Go to Market",
+    "login_required": "Login Required",
+    "login_required_desc": "Please log in to view your profile."
+  },
+  "factions": {
+    "rationalism": "Rationalism",
+    "empiricism": "Empiricism",
+    "pragmatism": "Pragmatism",
+    "idealism": "Idealism"
   }
 }

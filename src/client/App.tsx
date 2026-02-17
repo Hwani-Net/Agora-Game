@@ -13,6 +13,7 @@ import DebateDetailPage from './pages/DebateDetailPage.js';
 import AgentDetailPage from './pages/AgentDetailPage.js';
 import CreateAgentPage from './pages/CreateAgentPage.js';
 import LiveDebatePage from './pages/LiveDebatePage.js';
+import ProfilePage from './pages/ProfilePage.js';
 
 // ─── Theme Toggle ───
 
@@ -62,9 +63,18 @@ function LoginActions() {
 
   if (user) {
     return (
-      <button className="btn btn--ghost btn--sm" onClick={logout}>
-        {user.name} ✕
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button
+          className="btn btn--ghost btn--sm"
+          onClick={() => window.location.href = '/profile'}
+          style={{ textDecoration: 'none' }}
+        >
+          👤 {user.name}
+        </button>
+        <button className="btn btn--ghost btn--sm" onClick={logout} title={t('nav.logout')}>
+          ✕
+        </button>
+      </div>
     );
   }
 
@@ -177,6 +187,7 @@ function AppContent() {
           <Route path="/arena/:debateId" element={<DebateDetailPage />} />
           <Route path="/market" element={<MarketPage />} />
           <Route path="/quests" element={<QuestsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </main>
     </>

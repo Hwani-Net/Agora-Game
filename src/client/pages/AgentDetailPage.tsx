@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getAgentById, getAgentDebates, getAgentStock } from '../api.js';
+import { getFactionLabel } from '../utils/factions.js';
 import { useToast } from '../ToastContext.js';
 
 type Agent = {
@@ -102,12 +103,6 @@ export default function AgentDetailPage() {
     return { wins, losses, draws, total, winRate };
   }, [agent]);
 
-  function getFactionName(factionId: string): string {
-    const key = `create_agent.factions.${factionId.toLowerCase()}.name`;
-    const translated = t(key);
-    if (translated !== key) return translated;
-    return factionId;
-  }
 
   function getResultLabel(res: 'win' | 'loss' | 'draw') {
     return t(`agent_detail.debates.result.${res}`);
@@ -144,7 +139,7 @@ export default function AgentDetailPage() {
             <div className={`tier-badge tier-badge--${agent.tier.toLowerCase()}`}>{agent.tier}</div>
             <h2>{agent.name}</h2>
             <p className="agent-detail__meta">
-              {getFactionName(agent.faction)} · ELO {formatNum(agent.elo_score)}
+              {getFactionLabel(agent.faction, t)} · ELO {formatNum(agent.elo_score)}
             </p>
           </div>
           <Link to="/agents" className="btn btn--ghost btn--sm">

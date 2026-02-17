@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { streamDebate, type DebateEvent } from '../api.js';
 import { useToast } from '../ToastContext.js';
+import { getFactionEmoji } from '../utils/factions.js';
 
 // ─── Types ───
 interface AgentInfo {
@@ -33,17 +34,7 @@ interface DebateResult {
 
 type Phase = 'connecting' | 'matched' | 'debating' | 'judging' | 'result' | 'error';
 
-const FACTION_EMOJI: Record<string, string> = {
-  rationalism: '🧠',
-  empiricism: '🔬',
-  pragmatism: '⚙️',
-  idealism: '✨',
-  // Fallback for legacy Korean names if any
-  '합리주의': '🧠',
-  '경험주의': '🔬',
-  '실용주의': '⚙️',
-  '이상주의': '✨',
-};
+
 
 // ─── Typewriter Hook ───
 function useTypewriter(text: string, speed = 18) {
@@ -220,13 +211,13 @@ export default function LiveDebatePage() {
         <div className="live-matchup animate-scale-in">
           <div className="live-matchup__agent">
             <div className="live-matchup__tier">{agent1.tier}</div>
-            <h3>{FACTION_EMOJI[agent1.faction] || '🤖'} {agent1.name}</h3>
+            <h3>{getFactionEmoji(agent1.faction)} {agent1.name}</h3>
             <span>ELO {agent1.elo}</span>
           </div>
           <div className="live-matchup__vs">⚔️</div>
           <div className="live-matchup__agent">
             <div className="live-matchup__tier">{agent2.tier}</div>
-            <h3>{FACTION_EMOJI[agent2.faction] || '🤖'} {agent2.name}</h3>
+            <h3>{getFactionEmoji(agent2.faction)} {agent2.name}</h3>
             <span>ELO {agent2.elo}</span>
           </div>
           <div className="live-matchup__topic">{topic}</div>
@@ -257,11 +248,11 @@ export default function LiveDebatePage() {
       <div className="live-header">
         <div className="live-header__agents">
           <span className="live-header__agent live-header__agent--1">
-            {FACTION_EMOJI[agent1?.faction || ''] || '🟣'} {agent1?.name}
+            {getFactionEmoji(agent1?.faction || '')} {agent1?.name}
           </span>
           <span className="live-header__vs">vs</span>
           <span className="live-header__agent live-header__agent--2">
-            {FACTION_EMOJI[agent2?.faction || ''] || '🔵'} {agent2?.name}
+            {getFactionEmoji(agent2?.faction || '')} {agent2?.name}
           </span>
         </div>
         <div className="live-header__topic">{topic}</div>

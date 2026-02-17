@@ -2671,3 +2671,173 @@ a:hover {
   }
 }
 
+/* ─────────────────────────────────────
+ * Profile Page
+ * ───────────────────────────────────── */
+
+.profile-page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.profile-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.profile-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.profile-stat-card {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary);
+}
+
+.stat__value--gold {
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.stat__value--highlight {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+/* ─── Badges ─── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge--premium {
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  color: #1a1a1a;
+}
+
+.badge--free {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+/* ─── Portfolio Table ─── */
+
+.profile-portfolio-table {
+  overflow-x: auto;
+}
+
+.profile-portfolio-header,
+.profile-portfolio-row,
+.profile-portfolio-total {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1.5fr;
+  gap: 8px;
+  padding: 10px 12px;
+  align-items: center;
+  min-width: 600px;
+}
+
+.profile-portfolio-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.profile-portfolio-row {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+
+.profile-portfolio-row:hover {
+  background: var(--bg-glass-hover);
+}
+
+.profile-portfolio-agent {
+  font-weight: 600;
+}
+
+.profile-portfolio-total {
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-top: 2px solid var(--accent-primary);
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
+.text-profit {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.text-loss {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.text-profit small,
+.text-loss small {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* ─── Mobile responsive ─── */
+
+@media (max-width: 640px) {
+  .profile-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .profile-portfolio-header,
+  .profile-portfolio-row,
+  .profile-portfolio-total {
+    font-size: 0.75rem;
+    gap: 4px;
+    padding: 8px;
+  }
+}

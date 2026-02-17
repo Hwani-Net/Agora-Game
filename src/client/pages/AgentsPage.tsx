@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { fetchAgents } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
+import { getFactionLabel, getFactionEmoji } from '../utils/factions.js';
 
 interface Agent {
   id: string;
@@ -16,17 +17,6 @@ interface Agent {
   draws: number;
 }
 
-const FACTION_EMOJI: Record<string, string> = {
-  rationalism: '🧠',
-  empiricism: '🔬',
-  pragmatism: '⚙️',
-  idealism: '✨',
-  // Fallback for legacy Korean names if any
-  '합리주의': '🧠',
-  '경험주의': '🔬',
-  '실용주의': '⚙️',
-  '이상주의': '✨',
-};
 
 export default function AgentsPage() {
   const { t } = useTranslation();
@@ -54,12 +44,6 @@ export default function AgentsPage() {
     return `tier-badge tier-badge--${tier.toLowerCase()}`;
   }
 
-  function getFactionName(factionId: string): string {
-    const key = `create_agent.factions.${factionId.toLowerCase()}.name`;
-    const translated = t(key);
-    if (translated !== key) return translated;
-    return factionId;
-  }
 
   if (loading) {
     return (
@@ -106,7 +90,7 @@ export default function AgentsPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 12 }}>
                 <div>
                   <h3 style={{ fontSize: '1.075rem', fontWeight: 700 }}>
-                    {FACTION_EMOJI[agent.faction] || '🤖'} {agent.name}
+                    {getFactionEmoji(agent.faction)} {agent.name}
                   </h3>
                   <span
                     style={{
@@ -115,7 +99,7 @@ export default function AgentsPage() {
                       fontWeight: 500,
                     }}
                   >
-                    {getFactionName(agent.faction)}
+                    {getFactionLabel(agent.faction, t)}
                   </span>
                 </div>
                 <span className={tierClass(agent.tier)}>{agent.tier}</span>
