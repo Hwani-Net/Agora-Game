@@ -55,16 +55,10 @@ export default function AgentDetailPage() {
     let active = true;
     setLoading(true);
 
-    Promise.all([
-      getAgentById(agentId),
-      getAgentDebates(agentId),
-      getAgentStock(agentId),
-    ])
-      .then(([agentData, debateData, stockData]) => {
+    getAgentById(agentId)
+      .then((agentData) => {
         if (!active) return;
         setAgent(agentData as Agent);
-        setDebates((debateData || []) as Debate[]);
-        setStock((stockData || null) as Stock | null);
       })
       .catch((err) => {
         if (!active) return;
@@ -75,6 +69,15 @@ export default function AgentDetailPage() {
         if (!active) return;
         setLoading(false);
       });
+
+    // These calls are independent — failures should not block the agent card
+    getAgentDebates(agentId)
+      .then((debateData) => { if (active) setDebates((debateData || []) as Debate[]); })
+      .catch(() => { if (active) setDebates([]); });
+
+    getAgentStock(agentId)
+      .then((stockData) => { if (active) setStock((stockData || null) as Stock | null); })
+      .catch(() => { if (active) setStock(null); });
 
     return () => {
       active = false;
