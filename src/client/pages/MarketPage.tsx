@@ -142,7 +142,7 @@ export default function MarketPage() {
 
       {/* ─── Portfolio Section ─── */}
       {user && portfolio.length > 0 && (
-        <div className="portfolio-section">
+        <div className="portfolio-section animate-slide-up">
           <div className="portfolio-summary">
             <div className="portfolio-summary__item">
               <span className="portfolio-summary__label">{t('market.portfolio.owned_stocks')}</span>
@@ -156,8 +156,8 @@ export default function MarketPage() {
             </div>
             <div className="portfolio-summary__item">
               <span className="portfolio-summary__label">{t('market.portfolio.profit')}</span>
-              <span className={`portfolio-summary__value ${totalProfit >= 0 ? 'profit--up' : 'profit--down'}`}>
-                {totalProfit >= 0 ? '+' : ''}
+              <span className={`portfolio-summary__value ${totalProfit > 0 ? 'profit--up' : totalProfit < 0 ? 'profit--down' : ''}`}>
+                {totalProfit > 0 ? '+' : ''}
                 {Math.round(totalProfit).toLocaleString()} G
               </span>
             </div>
@@ -221,16 +221,16 @@ export default function MarketPage() {
           <p>{t('market.messages.ipo_hint')}</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="market-list-container">
           {/* Table Header */}
           <div className="market-table-header">
             <span>{t('market.list.agent')}</span>
-            <span style={{ textAlign: 'right' }}>{t('market.list.price')}</span>
-            <span style={{ textAlign: 'right' }}>{t('market.list.change')}</span>
-            <span style={{ textAlign: 'right' }}>{t('market.list.market_cap')}</span>
-            <span style={{ textAlign: 'right' }}>{t('market.list.avail_shares')}</span>
-            <span style={{ textAlign: 'center' }}>{t('market.list.chart')}</span>
-            <span style={{ textAlign: 'center' }}>{t('market.list.trade')}</span>
+            <span className="text-right">{t('market.list.price')}</span>
+            <span className="text-right">{t('market.list.change')}</span>
+            <span className="text-right">{t('market.list.market_cap')}</span>
+            <span className="text-right">{t('market.list.avail_shares')}</span>
+            <span className="text-center">{t('market.list.chart')}</span>
+            <span className="text-center">{t('market.list.trade')}</span>
           </div>
 
           {/* Stock Rows */}
@@ -241,9 +241,6 @@ export default function MarketPage() {
               <div
                 key={stock.id}
                 className="card market-stock-row"
-                style={{
-                  gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 120px 100px',
-                }}
               >
                 <div>
                   <div style={{ fontWeight: 600 }}>
@@ -271,7 +268,7 @@ export default function MarketPage() {
                 </div>
                 <div className="market-cell-mono">{(stock.market_cap / 1000).toFixed(0)}K</div>
                 <div className="market-cell-mono">{stock.available_shares.toLocaleString()}</div>
-                <div className="stock-mini-chart" style={{ justifyContent: 'center' }}>
+                <div className="stock-mini-chart">
                   {bars.map((h, i) => (
                     <div
                       key={i}
@@ -283,9 +280,9 @@ export default function MarketPage() {
                     />
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                <div className="market-cell-actions">
                   {user ? (
-                    <>
+                    <div className="flex-center gap-1">
                       <button
                         className="btn btn--xs btn--buy"
                         onClick={() => openTradeModal(stock, 'buy')}
@@ -300,17 +297,20 @@ export default function MarketPage() {
                           {t('market.trade_modal.sell')}
                         </button>
                       )}
-                    </>
+                    </div>
                   ) : (
-                    <button
-                      className="btn btn--xs btn--ghost"
-                      onClick={() => {
-                        pushToast(t('market.messages.login_prompt'), 'info');
-                        login().catch((err: Error) => pushToast(err.message, 'error'));
-                      }}
-                    >
-                      🔒 {t('nav.login')}
-                    </button>
+                    <div className="flex-center">
+                      <button
+                        className="btn btn--xs btn--ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          pushToast(t('market.messages.login_prompt'), 'info');
+                          login().catch((err: Error) => pushToast(err.message, 'error'));
+                        }}
+                      >
+                        🔒 {t('nav.login')}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
