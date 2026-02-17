@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api.js';
+import { fetchRecentDebates, fetchTopics, startAutoBattle } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
 
 interface Debate {
@@ -8,9 +8,16 @@ interface Debate {
   agent2_name: string;
   topic: string;
   winner_name: string;
-  rounds: string; // JSON stringified
+  rounds: unknown; // JSONB from Supabase comes as object, not string
   status: string;
-  created_at: string;
+  started_at: string;
+  created_at?: string;
+}
+
+interface Round {
+  round: number;
+  agent1_argument: string;
+  agent2_argument: string;
 }
 
 export default function ArenaPage() {
@@ -28,10 +35,10 @@ export default function ArenaPage() {
   async function loadData() {
     try {
       const [recent, topicList] = await Promise.all([
-        api.get<Debate[]>('/battles/recent?limit=10'),
-        api.get<string[]>('/battles/topics'),
+        fetchRecentDebates(10),
+        fetchTopics(),
       ]);
-      setDebates(Array.isArray(recent) ? recent : []);
+      setDebates(Array.isArray(recent) ? recent as Debate[] : []);
       setTopics(Array.isArray(topicList) ? topicList : []);
     } catch {
       setDebates([]);
@@ -41,13 +48,13 @@ export default function ArenaPage() {
     }
   }
 
-  async function startAutoBattle() {
+  async function handleStartAutoBattle() {
     if (!user) return;
     setStarting(true);
     try {
-      const result = await api.post<Debate>('/battles/auto');
-      setDebates((prev) => [result, ...prev]);
-      setSelectedDebate(result);
+      const result = await startAutoBattle();
+      setDebates((prev) => [result as Debate, ...prev]);
+      setSelectedDebate(result as Debate);
     } catch (err) {
       alert(err instanceof Error ? err.message : '배틀 시작 실패');
     } finally {
@@ -55,9 +62,17 @@ export default function ArenaPage() {
     }
   }
 
-  function parseRounds(roundsJson: string): { speaker: string; content: string }[] {
+  function parseRounds(rounds: unknown): { speaker: string; content: string }[] {
     try {
-      return JSON.parse(roundsJson);
+      const arr = typeof rounds === 'string' ? JSON.parse(rounds) : rounds;
+      if (!Array.isArray(arr)) return [];
+      // Convert round format to speaker/content pairs
+      return arr.flatMap((r: Round) => {
+        const items = [];
+        if (r.agent1_argument) items.push({ speaker: 'Agent 1', content: r.agent1_argument });
+        if (r.agent2_argument) items.push({ speaker: 'Agent 2', content: r.agent2_argument });
+        return items;
+      });
     } catch {
       return [];
     }
@@ -75,7 +90,7 @@ export default function ArenaPage() {
           <p className="section-header__subtitle">AI 에이전트들의 치열한 토론을 관전하세요</p>
         </div>
         {user && (
-          <button className="btn btn--primary" onClick={startAutoBattle} disabled={starting}>
+          <button className="btn btn--primary" onClick={handleStartAutoBattle} disabled={starting}>
             {starting ? '매칭 중...' : '🎲 자동 매칭 배틀'}
           </button>
         )}
@@ -131,7 +146,7 @@ export default function ArenaPage() {
           {parseRounds(selectedDebate.rounds).map((round, i) => (
             <div key={i} className="debate-round animate-slide-in" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="debate-round__speaker">
-                {round.speaker === selectedDebate.agent1_name ? '🟣' : '🔵'} {round.speaker}
+                {round.speaker === 'Agent 1' ? '🟣' : '🔵'} {round.speaker === 'Agent 1' ? selectedDebate.agent1_name : selectedDebate.agent2_name}
               </div>
               <div className="debate-round__text">{round.content}</div>
             </div>
@@ -186,7 +201,7 @@ export default function ArenaPage() {
                   </span>
                 )}
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  {new Date(d.created_at).toLocaleDateString('ko-KR')}
+                  {new Date(d.started_at || d.created_at || '').toLocaleDateString('ko-KR')}
                 </span>
               </div>
             </div>

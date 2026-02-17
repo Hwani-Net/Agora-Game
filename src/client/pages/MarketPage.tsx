@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api.js';
+import { fetchStocks } from '../api.js';
 
 interface Stock {
   id: string;
@@ -17,8 +17,8 @@ export default function MarketPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<Stock[]>('/stocks')
-      .then((data) => setStocks(Array.isArray(data) ? data : []))
+    fetchStocks()
+      .then((data) => setStocks(Array.isArray(data) ? data as Stock[] : []))
       .catch(() => setStocks([]))
       .finally(() => setLoading(false));
   }, []);

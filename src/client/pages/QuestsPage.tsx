@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api.js';
+import { fetchQuests } from '../api.js';
 
 interface Quest {
   id: string;
@@ -23,9 +23,8 @@ export default function QuestsPage() {
   async function loadQuests() {
     setLoading(true);
     try {
-      const params = filter === 'all' ? '' : `?type=${filter}`;
-      const data = await api.get<Quest[]>(`/quests${params}`);
-      setQuests(Array.isArray(data) ? data : []);
+      const data = await fetchQuests(filter === 'all' ? undefined : filter);
+      setQuests(Array.isArray(data) ? data as Quest[] : []);
     } catch {
       setQuests([]);
     } finally {
@@ -36,6 +35,7 @@ export default function QuestsPage() {
   function statusBadge(status: string) {
     const colors: Record<string, { bg: string; text: string }> = {
       active: { bg: 'rgba(16, 185, 129, 0.1)', text: 'var(--success)' },
+      open: { bg: 'rgba(16, 185, 129, 0.1)', text: 'var(--success)' },
       closed: { bg: 'rgba(107, 114, 128, 0.1)', text: 'var(--text-muted)' },
       completed: { bg: 'rgba(99, 102, 241, 0.1)', text: 'var(--accent-primary)' },
     };

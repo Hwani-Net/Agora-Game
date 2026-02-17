@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api.js';
+import { fetchAgents, fetchRecentDebates, fetchStocks } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
 
 interface HomePageProps {
@@ -16,12 +16,12 @@ export default function HomePage({ onNavigate }: HomePageProps) {
 
   useEffect(() => {
     Promise.all([
-      api.get<{ total: number }>('/agents?limit=0').catch(() => ({ total: 0 })),
-      api.get<unknown[]>('/battles/recent?limit=5').catch(() => []),
-      api.get<unknown[]>('/stocks').catch(() => []),
-    ]).then(([agents, battles, stocks]) => {
+      fetchAgents({ limit: 0 }).catch(() => ({ agents: [], total: 0 })),
+      fetchRecentDebates(5).catch(() => []),
+      fetchStocks().catch(() => []),
+    ]).then(([agentsResult, battles, stocks]) => {
       setStats({
-        totalAgents: (agents as { total?: number }).total ?? 0,
+        totalAgents: (agentsResult as { total: number }).total ?? 0,
         recentBattles: Array.isArray(battles) ? battles.length : 0,
         totalStocks: Array.isArray(stocks) ? stocks.length : 0,
       });

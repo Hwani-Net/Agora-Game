@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api.js';
+import { fetchAgents, createAgent } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
 
 interface Agent {
@@ -36,8 +36,8 @@ export default function AgentsPage() {
 
   async function loadAgents() {
     try {
-      const data = await api.get<{ agents: Agent[]; total: number }>('/agents?limit=20&sortBy=elo_score');
-      setAgents(data.agents || []);
+      const data = await fetchAgents({ limit: 20, sortBy: 'elo_score' });
+      setAgents((data.agents || []) as Agent[]);
     } catch {
       setAgents([]);
     } finally {
@@ -53,7 +53,7 @@ export default function AgentsPage() {
     setCreating(true);
     setError('');
     try {
-      await api.post('/agents', form);
+      await createAgent(form);
       setShowCreate(false);
       setForm({ name: '', persona: '', faction: '합리주의' });
       loadAgents();
