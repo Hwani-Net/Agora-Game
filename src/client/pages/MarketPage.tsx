@@ -17,7 +17,7 @@ interface Stock {
 type TradeTab = 'buy' | 'sell';
 
 export default function MarketPage() {
-  const { user, refreshProfile } = useAuthContext();
+  const { user, refreshProfile, login } = useAuthContext();
   const { pushToast } = useToast();
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
@@ -207,7 +207,7 @@ export default function MarketPage() {
             <span style={{ textAlign: 'right' }}>시가총액</span>
             <span style={{ textAlign: 'right' }}>잔여 주식</span>
             <span style={{ textAlign: 'center' }}>차트</span>
-            {user && <span style={{ textAlign: 'center' }}>거래</span>}
+            <span style={{ textAlign: 'center' }}>거래</span>
           </div>
 
           {/* Stock Rows */}
@@ -219,7 +219,7 @@ export default function MarketPage() {
                 key={stock.id}
                 className="card market-stock-row"
                 style={{
-                  gridTemplateColumns: user ? '2fr 1fr 1fr 1fr 1fr 120px 100px' : '2fr 1fr 1fr 1fr 1fr 120px',
+                  gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 120px 100px',
                 }}
               >
                 <div>
@@ -256,18 +256,30 @@ export default function MarketPage() {
                     />
                   ))}
                 </div>
-                {user && (
-                  <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-                    <button className="btn btn--xs btn--buy" onClick={() => openTradeModal(stock, 'buy')}>
-                      매수
-                    </button>
-                    {owned > 0 && (
-                      <button className="btn btn--xs btn--sell" onClick={() => openTradeModal(stock, 'sell')}>
-                        매도
+                <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                  {user ? (
+                    <>
+                      <button className="btn btn--xs btn--buy" onClick={() => openTradeModal(stock, 'buy')}>
+                        매수
                       </button>
-                    )}
-                  </div>
-                )}
+                      {owned > 0 && (
+                        <button className="btn btn--xs btn--sell" onClick={() => openTradeModal(stock, 'sell')}>
+                          매도
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <button
+                      className="btn btn--xs btn--ghost"
+                      onClick={() => {
+                        pushToast('로그인을 진행합니다...', 'info');
+                        login().catch((err: Error) => pushToast(err.message, 'error'));
+                      }}
+                    >
+                      🔒 로그인
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
