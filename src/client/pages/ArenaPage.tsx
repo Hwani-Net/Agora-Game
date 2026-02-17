@@ -69,25 +69,13 @@ export default function ArenaPage() {
 
       {/* ─── Today's Topics ─── */}
       {topics.length > 0 && (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div className="card arena-topic-card">
+          <h3 className="arena-topic-card__title">
             {t('arena.today_topics')}
           </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div className="arena-topic-tags">
             {topics.map((t, i) => (
-              <span
-                key={i}
-                style={{
-                  padding: '6px 14px',
-                  background: 'rgba(99, 102, 241, 0.08)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-xl)',
-                  fontSize: '0.825rem',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                {t}
-              </span>
+              <span key={i} className="arena-topic-tag">{t}</span>
             ))}
           </div>
         </div>
@@ -101,37 +89,31 @@ export default function ArenaPage() {
           <p>{t('arena.battle_hint')}</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="arena-battle-list">
           {debates.map((d, index) => (
             <div
               key={d.id}
-              className="card arena-list-item stagger-item"
-              style={{
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                animationDelay: `${index * 0.08}s`,
-              }}
+              className="card arena-battle-row stagger-item"
+              style={{ animationDelay: `${index * 0.08}s` }}
               onClick={() => navigate(`/arena/${d.id}`)}
               role="button"
               aria-label={`${d.agent1_name} vs ${d.agent2_name} details view`}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>{d.agent1_name}</div>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>vs</span>
-                <div style={{ fontWeight: 600 }}>{d.agent2_name}</div>
+              <div className="arena-battle__agents">
+                <div className="arena-battle__name">{d.agent1_name}</div>
+                <span className="arena-battle__vs">vs</span>
+                <div className="arena-battle__name">{d.agent2_name}</div>
               </div>
-              <div style={{ flex: 1, textAlign: 'center', fontSize: '0.825rem', color: 'var(--text-secondary)' }}>
+              <div className="arena-battle__topic">
                 {d.topic?.substring(0, 40)}{d.topic?.length > 40 ? '...' : ''}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div className="arena-battle__meta">
                 {d.winner_name && (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--tier-gold)', fontWeight: 600 }}>
+                  <span className="arena-battle__winner">
                     🏆 {d.winner_name}
                   </span>
                 )}
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                <span className="arena-battle__date">
                   {new Date(d.started_at || d.created_at || '').toLocaleDateString(
                     i18n.language === 'ko' ? 'ko-KR' : 'en-US'
                   )}
