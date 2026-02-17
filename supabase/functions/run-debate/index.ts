@@ -176,7 +176,6 @@ async function findMatch(
   const { data: agents, error } = await supabase
     .from("agents")
     .select("*")
-    .eq("is_active", true)
     .order("elo_score", { ascending: false })
     .limit(20);
 
