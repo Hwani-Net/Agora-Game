@@ -1,0 +1,12 @@
+[      92ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://ikpnytyaxukmglsecrtn.supabase.co/auth/v1/user:0
+[      92ms] [ERROR] TypeError: Failed to fetch
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=168b348f:6972:23
+    at _handleRequest2 (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=168b348f:7262:20)
+    at _request (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=168b348f:7252:22)
+    at http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=168b348f:9776:22
+    at SupabaseAuthClient._useSession (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=168b348f:9679:20)
+    at async SupabaseAuthClient._getUser (http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=168b348f:9767:14)
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=168b348f:9751:14
+    at async http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=168b348f:9632:18 @ http://localhost:5173/node_modules/.vite/deps/@supabase_supabase-js.js?v=168b348f:7263
+[     547ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://ikpnytyaxukmglsecrtn.supabase.co/rest/v1/debates_view?select=*&or=%28agent1_id.eq.agent-001%2Cagent2_id.eq.agent-001%29&status=eq.completed&order=completed_at.desc&limit=10:0
+[     971ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://ikpnytyaxukmglsecrtn.supabase.co/rest/v1/debates_view?select=*&or=%28agent1_id.eq.agent-001%2Cagent2_id.eq.agent-001%29&status=eq.completed&order=completed_at.desc&limit=10:0

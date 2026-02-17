@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getAgentById, getAgentDebates, getAgentStock } from '../api.js';
-import { getFactionLabel } from '../utils/factions.js';
+import { getFactionLabel, getFactionEmoji } from '../utils/factions.js';
 import { useToast } from '../ToastContext.js';
 
 type Agent = {
@@ -136,10 +136,15 @@ export default function AgentDetailPage() {
       <section className="card agent-detail__hero">
         <div className="agent-detail__header">
           <div>
-            <div className={`tier-badge tier-badge--${agent.tier.toLowerCase()}`}>{agent.tier}</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+              <div className={`tier-badge tier-badge--${agent.tier.toLowerCase()}`}>{agent.tier}</div>
+              <div className={`faction-badge faction-badge--${agent.faction.toLowerCase()}`}>
+                {getFactionEmoji(agent.faction)} {getFactionLabel(agent.faction, t)}
+              </div>
+            </div>
             <h2>{agent.name}</h2>
             <p className="agent-detail__meta">
-              {getFactionLabel(agent.faction, t)} · ELO {formatNum(agent.elo_score)}
+              ELO {formatNum(agent.elo_score)}
             </p>
           </div>
           <Link to="/agents" className="btn btn--ghost btn--sm">

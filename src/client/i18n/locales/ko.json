@@ -299,7 +299,22 @@
     "no_portfolio": "보유 중인 주식이 없습니다.",
     "go_market": "마켓 둘러보기",
     "login_required": "로그인이 필요합니다",
-    "login_required_desc": "프로필을 보려면 먼저 로그인해주세요."
+    "login_required_desc": "프로필을 보려면 먼저 로그인해주세요.",
+    "recent_trades": "최근 거래 내역",
+    "stock_trades": "주식 거래",
+    "gold_trades": "골드 거래",
+    "no_trades": "주식 거래 내역이 없습니다.",
+    "no_gold_history": "골드 거래 내역이 없습니다.",
+    "trade_type": "유형",
+    "trade_qty": "수량",
+    "trade_price": "단가",
+    "trade_total": "총액",
+    "trade_time": "시간",
+    "trade_type_buy": "매수",
+    "trade_type_sell": "매도",
+    "gold_amount": "금액",
+    "gold_desc": "설명",
+    "load_more": "더 보기"
   },
   "factions": {
     "rationalism": "합리주의",

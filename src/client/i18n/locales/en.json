@@ -304,7 +304,22 @@
     "no_portfolio": "You don't own any stocks yet.",
     "go_market": "Go to Market",
     "login_required": "Login Required",
-    "login_required_desc": "Please log in to view your profile."
+    "login_required_desc": "Please log in to view your profile.",
+    "recent_trades": "Recent Trades",
+    "stock_trades": "Stock Trades",
+    "gold_trades": "Gold Transactions",
+    "no_trades": "No stock trades yet.",
+    "no_gold_history": "No gold transaction history.",
+    "trade_type": "Type",
+    "trade_qty": "Qty",
+    "trade_price": "Price",
+    "trade_total": "Total",
+    "trade_time": "Time",
+    "trade_type_buy": "BUY",
+    "trade_type_sell": "SELL",
+    "gold_amount": "Amount",
+    "gold_desc": "Description",
+    "load_more": "Load More"
   },
   "factions": {
     "rationalism": "Rationalism",

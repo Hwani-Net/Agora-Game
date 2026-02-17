@@ -2841,3 +2841,213 @@ a:hover {
     padding: 8px;
   }
 }
+
+/* ─────────────────────────────────────
+ * Faction Badges (Agent Detail)
+ * ───────────────────────────────────── */
+
+.faction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.faction-badge--rationalism {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.25));
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  color: #a78bfa;
+}
+
+.faction-badge--empiricism {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(34, 211, 238, 0.25));
+  border: 1px solid rgba(6, 182, 212, 0.5);
+  color: #22d3ee;
+}
+
+.faction-badge--pragmatism {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(251, 191, 36, 0.25));
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
+
+.faction-badge--idealism {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(244, 114, 182, 0.25));
+  border: 1px solid rgba(236, 72, 153, 0.5);
+  color: #f472b6;
+}
+
+/* Fallback for Korean legacy names */
+.faction-badge--합리주의 {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.25));
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  color: #a78bfa;
+}
+.faction-badge--경험주의 {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(34, 211, 238, 0.25));
+  border: 1px solid rgba(6, 182, 212, 0.5);
+  color: #22d3ee;
+}
+.faction-badge--실용주의 {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(251, 191, 36, 0.25));
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
+.faction-badge--이상주의 {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(244, 114, 182, 0.25));
+  border: 1px solid rgba(236, 72, 153, 0.5);
+  color: #f472b6;
+}
+
+/* ─────────────────────────────────────
+ * Trade History (Profile Page)
+ * ───────────────────────────────────── */
+
+.trade-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.trade-tab {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.trade-tab:hover {
+  color: var(--text-primary);
+}
+
+.trade-tab--active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+.trade-history-table {
+  overflow-x: auto;
+}
+
+.trade-history-header,
+.trade-history-row {
+  display: grid;
+  grid-template-columns: 2fr 0.8fr 0.8fr 1fr 1fr 1.2fr;
+  gap: 8px;
+  padding: 8px 12px;
+  align-items: center;
+  min-width: 550px;
+}
+
+.trade-history-header {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.trade-history-row {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+
+.trade-history-row:hover {
+  background: var(--bg-glass-hover);
+}
+
+/* Gold history has a different grid */
+.gold-history-header,
+.gold-history-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr 1.2fr;
+  gap: 8px;
+  padding: 8px 12px;
+  align-items: center;
+  min-width: 400px;
+}
+
+.gold-history-header {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.gold-history-row {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+
+.gold-history-row:hover {
+  background: var(--bg-glass-hover);
+}
+
+.trade-type-badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.trade-type-badge--buy {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--success);
+}
+
+.trade-type-badge--sell {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--error);
+}
+
+.trade-type-badge--earn {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+}
+
+.trade-type-badge--spend {
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+}
+
+.btn--load-more {
+  display: block;
+  margin: 12px auto 0;
+  padding: 6px 20px;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .trade-tabs {
+    overflow-x: auto;
+  }
+
+  .trade-history-header,
+  .trade-history-row,
+  .gold-history-header,
+  .gold-history-row {
+    font-size: 0.75rem;
+    gap: 4px;
+    padding: 6px 8px;
+  }
+}

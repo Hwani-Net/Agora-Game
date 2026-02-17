@@ -376,3 +376,88 @@ export async function fetchProfile(): Promise<unknown | null> {
     portfolio_value: Math.round(portfolioValue),
   };
 }
+
+// ─── Trade History ───
+
+export interface TradeRecord {
+  id: string;
+  agent_name: string;
+  type: 'buy' | 'sell';
+  shares: number;
+  price: number;
+  total_amount: number;
+  timestamp: string;
+}
+
+export interface GoldTransaction {
+  id: string;
+  amount: number;
+  type: string;
+  description: string;
+  timestamp: string;
+}
+
+export async function fetchRecentTrades(limit = 10): Promise<TradeRecord[]> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data: txns, error } = await supabase
+      .from('stock_transactions')
+      .select('id, stock_id, type, shares, price, total_amount, timestamp')
+      .eq('user_id', user.id)
+      .order('timestamp', { ascending: false })
+      .limit(limit);
+
+    if (error || !txns || txns.length === 0) return [];
+
+    // Resolve agent names
+    const stockIds = [...new Set(txns.map((t) => t.stock_id))];
+    const { data: stocks } = await supabase
+      .from('agent_stocks')
+      .select('id, agent_id')
+      .in('id', stockIds);
+
+    const agentIds = [...new Set((stocks || []).map((s) => s.agent_id))];
+    const { data: agents } = await supabase
+      .from('agents')
+      .select('id, name')
+      .in('id', agentIds);
+
+    const stockToAgent = new Map((stocks || []).map((s) => [s.id, s.agent_id]));
+    const agentMap = new Map((agents || []).map((a) => [a.id, a.name]));
+
+    return txns.map((t) => ({
+      id: t.id,
+      agent_name: agentMap.get(stockToAgent.get(t.stock_id) || '') || 'Unknown',
+      type: t.type as 'buy' | 'sell',
+      shares: t.shares,
+      price: t.price,
+      total_amount: t.total_amount,
+      timestamp: t.timestamp,
+    }));
+  } catch (err) {
+    console.error('fetchRecentTrades error:', err);
+    return [];
+  }
+}
+
+export async function fetchGoldHistory(limit = 10): Promise<GoldTransaction[]> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('gold_transactions')
+      .select('id, amount, type, description, timestamp')
+      .eq('user_id', user.id)
+      .order('timestamp', { ascending: false })
+      .limit(limit);
+
+    if (error) return [];
+    return (data || []) as GoldTransaction[];
+  } catch (err) {
+    console.error('fetchGoldHistory error:', err);
+    return [];
+  }
+}
