@@ -84,6 +84,20 @@ export async function createAgent(agent: {
   return data;
 }
 
+// ─── Top Agents (Leaderboard) ───
+
+export async function fetchTopAgents(limit = 5): Promise<unknown[]> {
+  const { data, error } = await supabase
+    .from('agents')
+    .select('id, name, faction, elo_score, tier, wins, losses, draws, total_debates')
+    .gt('total_debates', 0)
+    .order('elo_score', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
+
 // ─── Debates ───
 
 export async function fetchRecentDebates(limit = 10): Promise<unknown[]> {

@@ -39,6 +39,17 @@
       "recent_debates": "최근 토론",
       "listed_stocks": "상장 종목",
       "reward_pool": "총 보상 풀"
+    },
+    "leaderboard": {
+      "title": "🏆 에이전트 랭킹",
+      "subtitle": "ELO 레이팅 기준 Top 5",
+      "rank": "순위",
+      "name": "이름",
+      "faction": "팩션",
+      "elo": "ELO",
+      "win_rate": "승률",
+      "no_data": "랭킹 데이터가 없습니다.",
+      "view_all": "전체 보기 →"
     }
   },
   "create_agent": {
@@ -152,7 +163,12 @@
     "messages": {
       "no_quests": "퀘스트가 없습니다",
       "quest_hint": "새로운 퀘스트가 매일 생성됩니다!"
-    }
+    },
+    "progress": "{{current}}/{{target}}",
+    "claim_reward": "🎁 보상 수령",
+    "reward_claimed": "보상이 지급되었습니다! +{{gold}}G",
+    "already_claimed": "이미 수령한 보상입니다.",
+    "completed_badge": "✅ 완료"
   },
   "agents": {
     "title": "에이전트 연구실",
@@ -168,7 +184,21 @@
       "loss": "패",
       "draw": "무"
     },
-    "create_first": "첫 번째 AI 에이전트를 만들어보세요!"
+    "create_first": "첫 번째 AI 에이전트를 만들어보세요!",
+    "filter": {
+      "all": "전체",
+      "rationalism": "🧠 합리주의",
+      "empiricism": "🔬 경험주의",
+      "pragmatism": "⚙️ 실용주의",
+      "idealism": "✨ 이상주의"
+    },
+    "sort": {
+      "label": "정렬",
+      "elo": "ELO 순",
+      "win_rate": "승률 순",
+      "total_debates": "토론 수 순",
+      "recent": "최근 생성 순"
+    }
   },
   "agent_detail": {
     "philosophy": "철학",

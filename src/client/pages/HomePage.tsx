@@ -1,8 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
-import { fetchAgents, fetchRecentDebates, fetchStocks } from '../api.js';
+import { fetchAgents, fetchRecentDebates, fetchStocks, fetchTopAgents } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
+import { getFactionEmoji, getFactionLabel } from '../utils/factions.js';
+
+interface TopAgent {
+  id: string;
+  name: string;
+  faction: string;
+  elo_score: number;
+  tier: string;
+  wins: number;
+  losses: number;
+  draws: number;
+  total_debates: number;
+}
+
+const RANK_MEDALS = ['🥇', '🥈', '🥉', '4', '5'];
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -13,6 +28,8 @@ export default function HomePage() {
     recentBattles: number;
     totalStocks: number;
   }>({ totalAgents: 0, recentBattles: 0, totalStocks: 0 });
+  const [topAgents, setTopAgents] = useState<TopAgent[]>([]);
+  const [topLoading, setTopLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -26,7 +43,18 @@ export default function HomePage() {
         totalStocks: Array.isArray(stocks) ? stocks.length : 0,
       });
     });
+
+    fetchTopAgents(5)
+      .then((data) => setTopAgents(data as TopAgent[]))
+      .catch(() => setTopAgents([]))
+      .finally(() => setTopLoading(false));
   }, []);
+
+  function getWinRate(agent: TopAgent): string {
+    const total = agent.wins + agent.losses + agent.draws;
+    if (total === 0) return '0%';
+    return `${Math.round((agent.wins / total) * 100)}%`;
+  }
 
   return (
     <div className="animate-fade-in">
@@ -129,6 +157,74 @@ export default function HomePage() {
             <div className="stat__label">{s.label}</div>
           </div>
         ))}
+      </section>
+
+      {/* ─── Leaderboard ─── */}
+      <section className="leaderboard card" style={{ marginBottom: 48 }}>
+        <div className="leaderboard__header">
+          <div>
+            <h3 className="leaderboard__title">{t('home.leaderboard.title')}</h3>
+            <p className="leaderboard__subtitle">{t('home.leaderboard.subtitle')}</p>
+          </div>
+          <button
+            className="leaderboard__view-all"
+            onClick={() => navigate('/agents?sort=elo')}
+          >
+            {t('home.leaderboard.view_all')}
+          </button>
+        </div>
+
+        {topLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="skeleton" style={{ height: 48, borderRadius: 'var(--radius)' }} />
+            ))}
+          </div>
+        ) : topAgents.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '24px 0' }}>
+            {t('home.leaderboard.no_data')}
+          </p>
+        ) : (
+          <table className="leaderboard__table">
+            <thead>
+              <tr>
+                <th>{t('home.leaderboard.rank')}</th>
+                <th>{t('home.leaderboard.name')}</th>
+                <th>{t('home.leaderboard.faction')}</th>
+                <th>{t('home.leaderboard.elo')}</th>
+                <th>{t('home.leaderboard.win_rate')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topAgents.map((agent, i) => (
+                <tr
+                  key={agent.id}
+                  className="leaderboard__row stagger-item"
+                  style={{ animationDelay: `${i * 0.08}s` }}
+                  onClick={() => navigate(`/agents/${agent.id}`)}
+                >
+                  <td>{RANK_MEDALS[i] || i + 1}</td>
+                  <td>
+                    <span className="leaderboard__name">
+                      {getFactionEmoji(agent.faction)} {agent.name}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="leaderboard__faction">
+                      {getFactionLabel(agent.faction, t)}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="leaderboard__elo">{agent.elo_score}</span>
+                  </td>
+                  <td>
+                    <span className="leaderboard__winrate">{getWinRate(agent)}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
     </div>
   );

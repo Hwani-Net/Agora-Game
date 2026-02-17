@@ -39,6 +39,17 @@
       "recent_debates": "Recent Debates",
       "listed_stocks": "Listed Stocks",
       "reward_pool": "Reward Pool"
+    },
+    "leaderboard": {
+      "title": "🏆 Agent Rankings",
+      "subtitle": "Top 5 by ELO Rating",
+      "rank": "Rank",
+      "name": "Name",
+      "faction": "Faction",
+      "elo": "ELO",
+      "win_rate": "Win %",
+      "no_data": "No ranking data available.",
+      "view_all": "View All →"
     }
   },
   "create_agent": {
@@ -152,7 +163,12 @@
     "messages": {
       "no_quests": "No quests found",
       "quest_hint": "New quests generate every day!"
-    }
+    },
+    "progress": "{{current}}/{{target}}",
+    "claim_reward": "🎁 Claim Reward",
+    "reward_claimed": "Reward claimed! +{{gold}}G",
+    "already_claimed": "Reward already claimed.",
+    "completed_badge": "✅ Complete"
   },
   "agents": {
     "title": "Agent Lab",
@@ -168,7 +184,21 @@
       "loss": "L",
       "draw": "D"
     },
-    "create_first": "Be the first to create an agent!"
+    "create_first": "Be the first to create an agent!",
+    "filter": {
+      "all": "All",
+      "rationalism": "🧠 Rationalism",
+      "empiricism": "🔬 Empiricism",
+      "pragmatism": "⚙️ Pragmatism",
+      "idealism": "✨ Idealism"
+    },
+    "sort": {
+      "label": "Sort",
+      "elo": "ELO",
+      "win_rate": "Win Rate",
+      "total_debates": "Debates",
+      "recent": "Recent"
+    }
   },
   "agent_detail": {
     "philosophy": "Philosophy",

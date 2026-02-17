@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { fetchAgents } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
@@ -15,15 +15,28 @@ interface Agent {
   wins: number;
   losses: number;
   draws: number;
+  total_debates?: number;
+  created_at?: string;
 }
 
+const FACTIONS = ['all', 'rationalism', 'empiricism', 'pragmatism', 'idealism'] as const;
+const SORT_OPTIONS = ['elo', 'win_rate', 'total_debates', 'recent'] as const;
+
+type FactionFilter = (typeof FACTIONS)[number];
+type SortOption = (typeof SORT_OPTIONS)[number];
 
 export default function AgentsPage() {
   const { t } = useTranslation();
   const { user } = useAuthContext();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Read filter/sort from URL params
+  const activeFilter = (searchParams.get('faction') || 'all') as FactionFilter;
+  const activeSort = (searchParams.get('sort') || 'elo') as SortOption;
 
   useEffect(() => {
     loadAgents();
@@ -31,7 +44,7 @@ export default function AgentsPage() {
 
   async function loadAgents() {
     try {
-      const data = await fetchAgents({ limit: 20, sortBy: 'elo_score' });
+      const data = await fetchAgents({ limit: 50, sortBy: 'elo_score' });
       setAgents((data.agents || []) as Agent[]);
     } catch {
       setAgents([]);
@@ -40,10 +53,66 @@ export default function AgentsPage() {
     }
   }
 
+  function setFilter(faction: FactionFilter) {
+    const params = new URLSearchParams(searchParams);
+    if (faction === 'all') params.delete('faction');
+    else params.set('faction', faction);
+    setSearchParams(params, { replace: true });
+  }
+
+  function setSort(sort: SortOption) {
+    const params = new URLSearchParams(searchParams);
+    if (sort === 'elo') params.delete('sort');
+    else params.set('sort', sort);
+    setSearchParams(params, { replace: true });
+  }
+
+  // Client-side filter + sort
+  const filteredAgents = useMemo(() => {
+    let result = [...agents];
+
+    // Filter by faction
+    if (activeFilter !== 'all') {
+      result = result.filter((a) => a.faction === activeFilter);
+    }
+
+    // Sort
+    switch (activeSort) {
+      case 'win_rate':
+        result.sort((a, b) => {
+          const aTotal = a.wins + a.losses + a.draws;
+          const bTotal = b.wins + b.losses + b.draws;
+          const aRate = aTotal > 0 ? a.wins / aTotal : 0;
+          const bRate = bTotal > 0 ? b.wins / bTotal : 0;
+          return bRate - aRate;
+        });
+        break;
+      case 'total_debates':
+        result.sort((a, b) => {
+          const aTotal = a.total_debates ?? (a.wins + a.losses + a.draws);
+          const bTotal = b.total_debates ?? (b.wins + b.losses + b.draws);
+          return bTotal - aTotal;
+        });
+        break;
+      case 'recent':
+        result.sort((a, b) => {
+          const aDate = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const bDate = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return bDate - aDate;
+        });
+        break;
+      case 'elo':
+      default:
+        result.sort((a, b) => b.elo_score - a.elo_score);
+        break;
+    }
+
+    return result;
+  }, [agents, activeFilter, activeSort]);
+
   function tierClass(tier: string): string {
     return `tier-badge tier-badge--${tier.toLowerCase()}`;
   }
-
 
   if (loading) {
     return (
@@ -69,8 +138,39 @@ export default function AgentsPage() {
         )}
       </div>
 
+      {/* ─── Filter & Sort Bar ─── */}
+      <div className="agents-toolbar">
+        <div className="agents-filter">
+          {FACTIONS.map((faction) => (
+            <button
+              key={faction}
+              className={`agents-filter__tab${activeFilter === faction ? ' agents-filter__tab--active' : ''}`}
+              onClick={() => setFilter(faction)}
+            >
+              {faction === 'all'
+                ? t('agents.filter.all')
+                : t(`agents.filter.${faction}`)}
+            </button>
+          ))}
+        </div>
+        <div className="agents-sort">
+          <label className="agents-sort__label">{t('agents.sort.label')}</label>
+          <select
+            className="agents-sort__select"
+            value={activeSort}
+            onChange={(e) => setSort(e.target.value as SortOption)}
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {t(`agents.sort.${opt}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* ─── Agent Grid ─── */}
-      {agents.length === 0 ? (
+      {filteredAgents.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state__icon">🤖</div>
           <div className="empty-state__title">{t('agents.no_agents')}</div>
@@ -78,7 +178,7 @@ export default function AgentsPage() {
         </div>
       ) : (
         <div className="grid grid--3">
-          {agents.map((agent, index) => (
+          {filteredAgents.map((agent, index) => (
             <div
               key={agent.id}
               className="card card--agent stagger-item"
