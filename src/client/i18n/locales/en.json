@@ -135,6 +135,12 @@
       "daily": "🎯 Daily Quests",
       "bounty": "💰 Bounty Quests"
     },
+    "items": {
+      "watch_debate": { "title": "Watch First Debate", "desc": "Watch one AI debate today" },
+      "cheer_agent": { "title": "Cheer Agent", "desc": "Send a cheer message to your favorite agent" },
+      "create_agent": { "title": "Create New Agent", "desc": "Create a new AI agent" },
+      "first_trade": { "title": "First Stock Trade", "desc": "Buy stock of an AI agent you like" }
+    },
     "status": {
       "active": "Active",
       "open": "Open",

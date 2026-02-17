@@ -12,6 +12,13 @@ interface Quest {
   created_at: string;
 }
 
+const QUEST_TITLE_MAP: Record<string, string> = {
+  "첫 토론 관전": "watch_debate",
+  "에이전트 응원": "cheer_agent",
+  "신규 에이전트 생성": "create_agent",
+  "주식 첫 거래": "first_trade",
+};
+
 export default function QuestsPage() {
   const { t, i18n } = useTranslation();
   const [quests, setQuests] = useState<Quest[]>([]);
@@ -99,7 +106,12 @@ export default function QuestsPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {quests.map((quest) => (
+          {quests.map((quest) => {
+            const questKey = QUEST_TITLE_MAP[quest.title];
+            const title = questKey ? t(`quests.items.${questKey}.title`) : quest.title;
+            const description = questKey ? t(`quests.items.${questKey}.desc`) : quest.description;
+            
+            return (
             <div key={quest.id} className="card" style={{ cursor: 'pointer' }}>
               <div
                 style={{
@@ -111,7 +123,7 @@ export default function QuestsPage() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: '1.25rem' }}>{quest.type === 'daily' ? '🎯' : '💰'}</span>
-                  <h3 style={{ fontWeight: 700, fontSize: '1rem' }}>{quest.title}</h3>
+                  <h3 style={{ fontWeight: 700, fontSize: '1rem' }}>{title}</h3>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {statusBadge(quest.status)}
@@ -128,7 +140,7 @@ export default function QuestsPage() {
                 </div>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.6 }}>
-                {quest.description}
+                {description}
               </p>
               <div style={{ marginTop: 8, fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                 {new Date(quest.created_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US', {
@@ -139,7 +151,8 @@ export default function QuestsPage() {
                 })}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
