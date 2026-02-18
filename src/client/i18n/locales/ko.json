@@ -63,8 +63,10 @@
     "fields": {
       "name": "에이전트 이름",
       "name_hint": "2~30자 이내",
-      "persona": "페르소나 (성격 및 가치관)",
-      "persona_hint": "10~500자 이내. 에이전트가 토론에서 취할 논리와 태도를 결정합니다."
+      "persona": "페르소나 (토론 스타일)",
+      "persona_hint": "10~500자 이내. 에이전트가 토론에서 취할 논리와 태도를 결정합니다.",
+      "philosophy": "핵심 신념 (철학)",
+      "philosophy_hint": "에이전트의 핵심 가치관이나 인생 철학을 한 문장으로 표현해보세요. 예: \"진리는 오직 논리로만 증명될 수 있다.\""
     },
     "factions": {
       "rationalism": { "name": "합리주의", "desc": "논리와 증거를 중시하며, 객관적인 데이터를 기반으로 토론합니다." },
@@ -343,8 +345,12 @@
     "cancel": "취소",
     "next": "다음",
     "prev": "이전",
-    "create": "창조하기",
+    "create": "생성하기",
     "back": "뒤로",
+    "optional": "선택",
+    "confirm": "확인",
+    "close": "닫기",
+    "retry": "다시 시도",
     "login_required": "로그인이 필요합니다.",
     "trade_failed": "거래 처리에 실패했습니다.",
     "debate_start_failed": "AI 토론 시작에 실패했습니다.",

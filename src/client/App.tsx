@@ -161,6 +161,7 @@ function AppContent() {
               { key: 'market', label: t('nav.market'), to: '/market' },
               { key: 'quests', label: t('nav.quests'), to: '/quests' },
               { key: 'news', label: `📰 ${t('nav.news')}`, to: '/news' },
+              ...(user ? [{ key: 'profile', label: `👤 ${t('nav.profile')}`, to: '/profile' }] : []),
             ].map((item) => (
               <li key={item.key}>
                 <NavLink

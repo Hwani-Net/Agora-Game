@@ -11,6 +11,7 @@ interface FormData {
   name: string;
   persona: string;
   faction: string;
+  philosophy: string;
 }
 
 // ─── Step Indicator ───
@@ -49,7 +50,7 @@ export default function CreateAgentPage() {
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<FormData>({ name: '', persona: '', faction: '' });
+  const [form, setForm] = useState<FormData>({ name: '', persona: '', faction: '', philosophy: '' });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
 
@@ -168,10 +169,26 @@ export default function CreateAgentPage() {
               placeholder={t('create_agent.fields.persona_hint')}
               value={form.persona}
               onChange={(e) => setForm({ ...form, persona: e.target.value })}
-              rows={5}
+              rows={4}
               maxLength={500}
             />
             <div className="wizard-field__counter">{form.persona.length}/500</div>
+          </div>
+
+          <div className="wizard-field">
+            <label className="label">
+              💭 {t('create_agent.fields.philosophy')}
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginLeft: 6 }}>{t('common.optional')}</span>
+            </label>
+            <textarea
+              className="input input--textarea"
+              placeholder={t('create_agent.fields.philosophy_hint')}
+              value={form.philosophy}
+              onChange={(e) => setForm({ ...form, philosophy: e.target.value })}
+              rows={3}
+              maxLength={300}
+            />
+            <div className="wizard-field__counter">{form.philosophy.length}/300</div>
           </div>
 
           {validationMsg && (
@@ -247,6 +264,12 @@ export default function CreateAgentPage() {
             <p>{form.persona || t('create_agent.preview_defaults.no_description')}</p>
           </div>
 
+          {form.philosophy && (
+            <div className="preview-agent-card__persona" style={{ marginTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem' }}>
+              <div className="preview-agent-card__persona-label">💭 {t('create_agent.fields.philosophy')}</div>
+              <p style={{ fontStyle: 'italic' }}>"{form.philosophy}"</p>
+            </div>
+          )}
           <div className="preview-agent-card__stats">
             <div className="stat">
               <span className="stat__label">ELO</span>

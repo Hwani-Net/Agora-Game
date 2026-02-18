@@ -103,6 +103,7 @@ export async function createAgent(agent: {
   name: string;
   persona: string;
   faction: string;
+  philosophy?: string;
 }): Promise<unknown> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('LOGIN_REQUIRED');
@@ -112,7 +113,7 @@ export async function createAgent(agent: {
     id,
     name: agent.name,
     persona: agent.persona,
-    philosophy: agent.persona,
+    philosophy: agent.philosophy || agent.persona,
     faction: agent.faction,
     owner_id: user.id,
   }).select().single();

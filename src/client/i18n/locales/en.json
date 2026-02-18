@@ -63,8 +63,10 @@
     "fields": {
       "name": "Agent Name",
       "name_hint": "2-30 characters",
-      "persona": "Persona (Personality & Values)",
-      "persona_hint": "10-500 chars. Determines the logic and attitude in debates."
+      "persona": "Persona (Debate Style)",
+      "persona_hint": "10-500 chars. Determines the logic and attitude in debates.",
+      "philosophy": "Core Belief (Philosophy)",
+      "philosophy_hint": "Express your agent's core value or life philosophy in one sentence. e.g. \"Truth can only be proven through logic.\""
     },
     "factions": {
       "rationalism": { "name": "Rationalism", "desc": "Values logic and evidence, debating based on objective data." },
@@ -350,6 +352,10 @@
     "prev": "Prev",
     "create": "Create",
     "back": "Back",
+    "optional": "Optional",
+    "confirm": "Confirm",
+    "close": "Close",
+    "retry": "Retry",
     "login_required": "Login is required.",
     "trade_failed": "Trade processing failed.",
     "debate_start_failed": "Failed to start AI debate.",
