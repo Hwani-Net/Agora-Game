@@ -9,11 +9,13 @@ import {
   fetchUsageStats,
   fetchPortfolioHistory,
   capturePortfolioSnapshot,
+  fetchAgents,
   type PortfolioItem,
   type TradeRecord,
   type GoldTransaction,
 } from '../api.js';
 import PortfolioChart from '../components/PortfolioChart.js';
+import { getFactionEmoji } from '../utils/factions.js';
 
 type TradeTab = 'stock' | 'gold';
 
@@ -21,6 +23,16 @@ interface UsageStats {
   debates_today: number;
   trades_today: number;
   agents_count?: number;
+}
+
+interface AgentRow {
+  id: string;
+  name: string;
+  faction: string;
+  elo_score: number;
+  win_rate: number;
+  total_debates: number;
+  persona: string;
 }
 
 export default function ProfilePage() {
@@ -31,6 +43,7 @@ export default function ProfilePage() {
   const [trades, setTrades] = useState<TradeRecord[]>([]);
   const [goldTxns, setGoldTxns] = useState<GoldTransaction[]>([]);
   const [history, setHistory] = useState<any[]>([]);
+  const [myAgents, setMyAgents] = useState<AgentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [tradeTab, setTradeTab] = useState<TradeTab>('stock');
   const [tradeLimit, setTradeLimit] = useState(10);
@@ -48,17 +61,20 @@ export default function ProfilePage() {
       fetchGoldHistory(goldLimit),
       fetchUsageStats(),
       fetchPortfolioHistory(),
-      capturePortfolioSnapshot(), // Trigger snapshot (fire & forget)
+      capturePortfolioSnapshot(), // fire & forget
+      fetchAgents({ ownerId: user.id, limit: 20, sortBy: 'elo_score' }),
     ])
-      .then(([p, tr, gl, us, ph]) => {
+      .then(([p, tr, gl, us, ph, , ag]) => {
         setPortfolio(p);
         setTrades(tr);
         setGoldTxns(gl);
         setUsage(us as UsageStats);
         setHistory(ph as any[]);
+        setMyAgents(((ag as { agents: unknown[] }).agents as AgentRow[]) || []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, tradeLimit, goldLimit]);
 
   const locale = i18n.language === 'ko' ? 'ko-KR' : 'en-US';
@@ -97,35 +113,102 @@ export default function ProfilePage() {
   const portfolioValue = portfolio.reduce((s, p) => s + p.total_value, 0);
   const totalAssets = user.gold_balance + portfolioValue;
   const totalProfit = portfolio.reduce((s, p) => s + p.profit, 0);
+  const profitPct = portfolioValue > 0 ? (totalProfit / (portfolioValue - totalProfit)) * 100 : 0;
+
+  // Avatar initials
+  const initials = (user.name || '?').slice(0, 2).toUpperCase();
 
   return (
     <div className="profile-page animate-fade-in">
-      {/* ─── Header ─── */}
-      <div className="section-header">
-        <div>
-          <h2 className="section-header__title">{t('profile.title')}</h2>
-          <p className="section-header__subtitle">{t('profile.subtitle')}</p>
-        </div>
-      </div>
 
-      {/* ─── Account Info ─── */}
-      <section className="card profile-card">
-        <h3>📋 {t('profile.account')}</h3>
-        <div className="profile-info-grid">
-          <div className="profile-info-item">
-            <span className="stat__label">{t('profile.name')}</span>
-            <span className="stat__value">{user.name}</span>
-          </div>
-          <div className="profile-info-item">
-            <span className="stat__label">{t('profile.email')}</span>
-            <span className="stat__value stat__value--sm">{user.email || '-'}</span>
-          </div>
-          <div className="profile-info-item">
-            <span className="stat__label">{t('profile.membership')}</span>
+      {/* ─── Hero Header ─── */}
+      <section className="profile-hero card">
+        <div className="profile-hero__avatar">
+          {initials}
+        </div>
+        <div className="profile-hero__info">
+          <div className="profile-hero__name">{user.name}</div>
+          <div className="profile-hero__email">{user.email || 'Demo Account'}</div>
+          <div className="profile-hero__badges">
             <span className={`badge ${user.isPremium ? 'badge--premium' : 'badge--free'}`}>
-              {user.isPremium ? t('profile.premium') : t('profile.free')}
+              {user.isPremium ? `💎 ${t('profile.premium')}` : t('profile.free')}
+            </span>
+            <span className="badge badge--neutral">
+              🤖 {t('profile.agents_unit', { count: user.agents_count })}
             </span>
           </div>
+        </div>
+        <div className="profile-hero__stats">
+          <div className="profile-hero__stat">
+            <div className="profile-hero__stat-value stat__value--gold">💰 {fmt(user.gold_balance)}</div>
+            <div className="profile-hero__stat-label">{t('profile.gold_balance')}</div>
+          </div>
+          <div className="profile-hero__stat">
+            <div className="profile-hero__stat-value">🏦 {fmt(Math.round(totalAssets))}</div>
+            <div className="profile-hero__stat-label">{t('profile.total_assets')}</div>
+          </div>
+          <div className="profile-hero__stat">
+            <div className={`profile-hero__stat-value ${totalProfit >= 0 ? 'text-profit' : 'text-loss'}`}>
+              {totalProfit >= 0 ? '📈' : '📉'} {totalProfit >= 0 ? '+' : ''}{fmt(Math.round(totalProfit))} G
+            </div>
+            <div className="profile-hero__stat-label">
+              {totalProfit >= 0 ? '+' : ''}{profitPct.toFixed(1)}% {i18n.language === 'ko' ? '수익' : 'P&L'}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── My Agents ─── */}
+      <section className="card profile-card">
+        <div className="section-header mb-16">
+          <h3 className="section-header__title">🤖 {t('profile.my_agents')}</h3>
+          <button className="btn btn--primary btn--sm" onClick={() => navigate('/agents/create')}>
+            + {i18n.language === 'ko' ? '에이전트 만들기' : 'Create Agent'}
+          </button>
+        </div>
+        {loading ? (
+          <div className="spinner spinner--center" />
+        ) : myAgents.length === 0 ? (
+          <div className="empty-state p-y-24">
+            <p>{t('profile.no_agents')}</p>
+            <button className="btn btn--primary btn--sm mt-12" onClick={() => navigate('/agents/create')}>
+              {t('profile.create_agent_cta')}
+            </button>
+          </div>
+        ) : (
+          <div className="my-agents-grid">
+            {myAgents.map((agent) => (
+              <Link key={agent.id} to={`/agents/${agent.id}`} className="my-agent-card">
+                <div className="my-agent-card__header">
+                  <span className="my-agent-card__faction">{getFactionEmoji(agent.faction)}</span>
+                  <span className="my-agent-card__name">{agent.name}</span>
+                </div>
+                <div className="my-agent-card__stats">
+                  <div className="my-agent-card__stat">
+                    <span className="my-agent-card__stat-label">ELO</span>
+                    <span className="my-agent-card__stat-value">{Math.round(agent.elo_score)}</span>
+                  </div>
+                  <div className="my-agent-card__stat">
+                    <span className="my-agent-card__stat-label">{i18n.language === 'ko' ? '승률' : 'Win%'}</span>
+                    <span className="my-agent-card__stat-value">{(agent.win_rate * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="my-agent-card__stat">
+                    <span className="my-agent-card__stat-label">{i18n.language === 'ko' ? '토론' : 'Debates'}</span>
+                    <span className="my-agent-card__stat-value">{agent.total_debates}</span>
+                  </div>
+                </div>
+                <p className="my-agent-card__persona">{agent.persona}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ─── Portfolio History Chart ─── */}
+      <section className="card profile-card">
+        <h3>📈 {t('profile.asset_growth')}</h3>
+        <div className="chart-container mt-16">
+          <PortfolioChart data={history} height={250} />
         </div>
       </section>
 
@@ -146,21 +229,15 @@ export default function ProfilePage() {
             <div className="stat__value stat__value--highlight">🏦 {fmt(Math.round(totalAssets))} G</div>
           </div>
           <div className="profile-stat-card">
-            <div className="stat__label">{t('profile.agents_created')}</div>
-            <div className="stat__value">🤖 {t('profile.agents_unit', { count: user.agents_count })}</div>
+            <div className="stat__label">{i18n.language === 'ko' ? '총 수익' : 'Total P&L'}</div>
+            <div className={`stat__value ${totalProfit >= 0 ? 'text-profit' : 'text-loss'}`}>
+              {totalProfit >= 0 ? '+' : ''}{fmt(Math.round(totalProfit))} G
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ─── Portfolio History Chart (V2 Migration Feature) ─── */}
-      <section className="card profile-card">
-        <h3>📈 {t('profile.asset_growth')}</h3>
-        <div className="chart-container mt-16">
-          <PortfolioChart data={history} height={250} />
-        </div>
-      </section>
-
-      {/* ─── Usage Limits (V2 Migration Feature) ─── */}
+      {/* ─── Usage Limits ─── */}
       <section className="card profile-card usage-limits-card">
         <div className="section-header">
           <h3 className="section-header__title">{t('profile.usage_limits')}</h3>
@@ -174,7 +251,7 @@ export default function ProfilePage() {
           <div className="usage-item">
             <span className="usage-item__label">{t('profile.usage_debate')}</span>
             <div className="usage-bar-container">
-              <div 
+              <div
                 className={`usage-bar ${user.isPremium ? 'usage-bar--unlimited' : (usage?.debates_today ?? 0) >= 10 ? 'usage-bar--full' : ''}`}
                 style={{ width: user.isPremium ? '100%' : `${Math.min(((usage?.debates_today ?? 0) / 10) * 100, 100)}%` }}
               />
@@ -186,7 +263,7 @@ export default function ProfilePage() {
           <div className="usage-item">
             <span className="usage-item__label">{t('profile.usage_trade')}</span>
             <div className="usage-bar-container">
-              <div 
+              <div
                 className={`usage-bar ${user.isPremium ? 'usage-bar--unlimited' : (usage?.trades_today ?? 0) >= 20 ? 'usage-bar--full' : ''}`}
                 style={{ width: user.isPremium ? '100%' : `${Math.min(((usage?.trades_today ?? 0) / 20) * 100, 100)}%` }}
               />
@@ -198,7 +275,7 @@ export default function ProfilePage() {
           <div className="usage-item">
             <span className="usage-item__label">{t('profile.usage_agent')}</span>
             <div className="usage-bar-container">
-              <div 
+              <div
                 className={`usage-bar ${user.isPremium ? 'usage-bar--unlimited' : (user.agents_count ?? 0) >= 3 ? 'usage-bar--full' : ''}`}
                 style={{ width: user.isPremium ? '100%' : `${Math.min(((user.agents_count ?? 0) / 3) * 100, 100)}%` }}
               />

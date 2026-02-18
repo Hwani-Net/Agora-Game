@@ -14,15 +14,18 @@ export async function fetchAgents(options?: {
   limit?: number;
   sortBy?: string;
   faction?: string;
+  ownerId?: string;
 }): Promise<{ agents: unknown[]; total: number }> {
-  const { limit = 20, sortBy = 'elo_score', faction } = options || {};
+  const { limit = 20, sortBy = 'elo_score', faction, ownerId } = options || {};
 
   let countQuery = supabase.from('agents').select('*', { count: 'exact', head: true });
   if (faction) countQuery = countQuery.eq('faction', faction);
+  if (ownerId) countQuery = countQuery.eq('owner_id', ownerId);
   const { count } = await countQuery;
 
   let query = supabase.from('agents').select('*');
   if (faction) query = query.eq('faction', faction);
+  if (ownerId) query = query.eq('owner_id', ownerId);
   query = query.order(sortBy, { ascending: false });
   if (limit > 0) query = query.limit(limit);
   const { data, error } = await query;
