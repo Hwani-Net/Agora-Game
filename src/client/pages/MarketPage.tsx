@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { fetchStocks, fetchPortfolio, tradeStock, type PortfolioItem, type TradeResult } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
@@ -22,6 +22,7 @@ export default function MarketPage() {
   const { t } = useTranslation();
   const { user, refreshProfile, login } = useAuthContext();
   const { pushToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,9 @@ export default function MarketPage() {
   const [tradeTab, setTradeTab] = useState<TradeTab>('buy');
   const [quantity, setQuantity] = useState(1);
   const [trading, setTrading] = useState(false);
+  const [highlightAgentId, setHighlightAgentId] = useState<string | null>(
+    () => searchParams.get('agent')
+  );
 
   const loadData = useCallback(async () => {
     try {
@@ -49,6 +53,19 @@ export default function MarketPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Auto-open trade modal when ?agent=ID is present
+  useEffect(() => {
+    if (!highlightAgentId || stocks.length === 0) return;
+    const target = stocks.find((s) => s.agent_id === highlightAgentId);
+    if (target) {
+      openTradeModal(target, 'buy');
+      setHighlightAgentId(null);
+      // Clean up URL param without navigation
+      setSearchParams((prev) => { prev.delete('agent'); return prev; }, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightAgentId, stocks]);
 
 
 
@@ -234,10 +251,13 @@ export default function MarketPage() {
           {stocks.map((stock) => {
             const bars = miniChartBars();
             const owned = getOwnedShares(stock.id);
+            const isHighlighted = stock.agent_id === searchParams.get('agent') ||
+              (selectedStock?.id === stock.id && highlightAgentId === null);
             return (
               <div
                 key={stock.id}
-                className="card market-stock-row"
+                id={`stock-${stock.agent_id}`}
+                className={`card market-stock-row${isHighlighted ? ' market-stock-row--highlight' : ''}`}
               >
                 <div>
                   <Link to={`/agents/${stock.agent_id}`} className="market-stock__name agent-link">

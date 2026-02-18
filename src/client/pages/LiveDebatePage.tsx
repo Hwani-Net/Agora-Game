@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { streamDebate, type DebateEvent, type DebateResult } from '../api.js';
@@ -101,7 +101,9 @@ function ScoreBar({ label, value, max = 10 }: { label: string; value: number; ma
 export default function LiveDebatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { pushToast } = useToast();
+  const preferredTopic = searchParams.get('topic') || undefined;
 
   const [phase, setPhase] = useState<Phase>('connecting');
   const [topic, setTopic] = useState('');
@@ -201,7 +203,7 @@ export default function LiveDebatePage() {
     setSpeakingAgent(null);
     setCurrentRound(0);
 
-    streamDebate(handleEvent, ac.signal);
+    streamDebate(handleEvent, ac.signal, preferredTopic);
 
     return () => {
       ac.abort();

@@ -271,6 +271,7 @@ export interface DebateResult {
 export function streamDebate(
   onEvent: (event: DebateEvent) => void,
   signal?: AbortSignal,
+  topic?: string,
 ): void {
   const supabaseUrl: string = import.meta.env?.VITE_SUPABASE_URL || '';
   const supabaseAnonKey: string = import.meta.env?.VITE_SUPABASE_ANON_KEY || '';
@@ -284,7 +285,7 @@ export function streamDebate(
       'Authorization': `Bearer ${supabaseAnonKey}`,
       'apikey': supabaseAnonKey,
     },
-    body: JSON.stringify({ mode: 'auto', stream: true }),
+    body: JSON.stringify({ mode: 'auto', stream: true, ...(topic ? { topic } : {}) }),
     signal,
   })
     .then(async (response) => {

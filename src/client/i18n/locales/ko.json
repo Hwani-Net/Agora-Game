@@ -279,6 +279,12 @@
     "recent_battles": "⚔️ 최근 배틀",
     "no_battles": "아직 토론 기록이 없습니다",
     "battle_hint": "첫 번째 배틀을 시작해보세요!",
+    "start_with_topic": "⚔️ 이 주제로 토론 시작",
+    "result": {
+      "done": "완료",
+      "draw": "무승부",
+      "live": "LIVE"
+    },
     "topics": {
       "t1": "AI 규제가 필요한가?",
       "t2": "기본소득은 실현 가능한가?",

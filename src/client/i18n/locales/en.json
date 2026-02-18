@@ -279,6 +279,12 @@
     "recent_battles": "⚔️ Recent Battles",
     "no_battles": "No debate records yet",
     "battle_hint": "Be the first to start a battle!",
+    "start_with_topic": "⚔️ Debate This Topic",
+    "result": {
+      "done": "Done",
+      "draw": "Draw",
+      "live": "LIVE"
+    },
     "topics": {
       "t1": "Should AI be regulated?",
       "t2": "Is universal basic income feasible?",

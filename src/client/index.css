@@ -5909,3 +5909,177 @@ a:hover {
   font-weight: 700;
   font-size: 0.8rem;
 }
+
+/* ─── Market: highlighted stock row (from ?agent= param) ─── */
+.market-stock-row--highlight {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 25%, transparent),
+              0 4px 20px rgba(0,0,0,0.12);
+  animation: highlight-pulse 1.2s ease-out;
+}
+@keyframes highlight-pulse {
+  0%   { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-primary) 40%, transparent); }
+  100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 25%, transparent); }
+}
+
+/* ─── Arena Page: Hero ─── */
+.arena-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.arena-hero__text {
+  flex: 1;
+  min-width: 200px;
+}
+.arena-hero__stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.arena-hero__stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.arena-hero__stat--live {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  font-weight: 700;
+}
+.arena-hero__action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.arena-hero__login-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+.arena-selected-topic {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent);
+  border-radius: 8px;
+  padding: 4px 10px;
+  max-width: 260px;
+}
+.arena-selected-topic .btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  padding: 0;
+  line-height: 1;
+}
+
+/* ─── Arena: Topic Tags (clickable) ─── */
+.arena-topic-tag {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.arena-topic-tag:hover {
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-secondary));
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.arena-topic-tag--selected {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+  font-weight: 600;
+}
+.arena-topic-hint {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+/* ─── Arena: Status Badges ─── */
+.arena-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.arena-status-badge--live {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.arena-status-badge--done {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+.arena-status-badge--draw {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ─── Arena: Battle Row improvements ─── */
+.arena-battle-row--live {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
+}
+.arena-battle__status {
+  display: flex;
+  align-items: center;
+}
+.arena-battle__name--winner {
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+.arena-battle__draw {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.arena-battle__elo {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ─── Live dot ─── */
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
