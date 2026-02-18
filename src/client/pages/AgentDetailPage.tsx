@@ -135,12 +135,12 @@ export default function AgentDetailPage() {
   if (loading) {
     return (
       <div className="agent-detail">
-        <div className="card skeleton" style={{ height: 220, marginBottom: 24 }} />
+        <div className="card skeleton skeleton--h220" style={{ marginBottom: 24 }} />
         <div className="grid grid--2">
-          <div className="card skeleton" style={{ height: 160 }} />
-          <div className="card skeleton" style={{ height: 160 }} />
+          <div className="card skeleton skeleton--h160" />
+          <div className="card skeleton skeleton--h160" />
         </div>
-        <div className="card skeleton" style={{ height: 240, marginTop: 24 }} />
+        <div className="card skeleton skeleton--h240" style={{ marginTop: 24 }} />
       </div>
     );
   }
@@ -160,7 +160,7 @@ export default function AgentDetailPage() {
       <section className="card agent-detail__hero">
         <div className="agent-detail__header">
           <div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+            <div className="agent-detail__badges">
               <div className={`tier-badge tier-badge--${agent.tier.toLowerCase()}`}>{agent.tier}</div>
               <div className={`faction-badge faction-badge--${agent.faction.toLowerCase()}`}>
                 {getFactionEmoji(agent.faction)} {getFactionLabel(agent.faction, t)}
@@ -204,7 +204,7 @@ export default function AgentDetailPage() {
           <div className="agent-detail__record">
             <div>
               <div className="stat__label">{t('agents.stats.win_loss')}</div>
-              <div className="stat__value" style={{ fontSize: '1.25rem' }}>
+              <div className="stat__value">
                 {t('agent_detail.record.format', {
                   wins: stats.wins,
                   losses: stats.losses,
@@ -214,13 +214,13 @@ export default function AgentDetailPage() {
             </div>
             <div>
               <div className="stat__label">{t('agent_detail.record.total')}</div>
-              <div className="stat__value" style={{ fontSize: '1.25rem' }}>
+              <div className="stat__value">
                 {t('agent_detail.record.count', { count: stats.total })}
               </div>
             </div>
             <div>
               <div className="stat__label">{t('agent_detail.record.win_rate')}</div>
-              <div className="stat__value" style={{ fontSize: '1.25rem' }}>
+              <div className="stat__value">
                 {stats.winRate.toFixed(1)}%
               </div>
             </div>
@@ -255,14 +255,14 @@ export default function AgentDetailPage() {
       </section>
 
       <section className="card agent-detail__debates">
-        <div className="section-header" style={{ marginBottom: 16 }}>
+        <div className="section-header">
           <div>
             <h3 className="section-header__title">{t('agent_detail.debates.title')}</h3>
             <p className="section-header__subtitle">{t('agent_detail.debates.subtitle')}</p>
           </div>
         </div>
         {debates.length === 0 ? (
-          <div className="empty-state" style={{ padding: '24px 0' }}>
+          <div className="empty-state">
             {t('agent_detail.debates.no_debates')}
           </div>
         ) : (

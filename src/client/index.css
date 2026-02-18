@@ -4575,3 +4575,145 @@ a:hover {
     display: none;
   }
 }
+
+/* =============================================
+   AgentsPage — Agent Card Grid
+   ============================================= */
+.card--agent {
+  cursor: pointer;
+}
+.agent-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.agent-card__name {
+  font-size: 1.075rem;
+  font-weight: 700;
+}
+.agent-card__faction {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.agent-card__persona {
+  font-size: 0.825rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.agent-card__stats {
+  display: flex;
+  justify-content: space-between;
+}
+.agent-card__stats .stat__value {
+  font-size: 1.125rem;
+}
+.stat--center {
+  text-align: center;
+}
+.stat--right {
+  text-align: right;
+}
+.agent-card__record {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.agent-card__record-win  { color: var(--success); }
+.agent-card__record-loss { color: var(--danger); }
+.agent-card__record-draw { color: var(--text-muted); }
+
+/* skeleton placeholder height */
+.skeleton--h220 { height: 220px; }
+.skeleton--h160 { height: 160px; }
+.skeleton--h240 { height: 240px; }
+
+/* =============================================
+   AgentDetailPage — Sections
+   ============================================= */
+.agent-detail__badges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.agent-detail__record .stat__value {
+  font-size: 1.25rem;
+}
+.agent-detail__debates .section-header {
+  margin-bottom: 16px;
+}
+.agent-detail__debates .empty-state {
+  padding: 24px 0;
+}
+
+/* =============================================
+   CreateAgentPage — Wizard Tweaks
+   ============================================= */
+.create-wizard .btn--ghost.create-wizard__back {
+  margin-bottom: 16px;
+}
+.wizard-nav__spacer {
+  flex: 1;
+}
+.wizard-validation--mt {
+  margin-top: 16px;
+}
+.spinner--sm {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+  margin-right: 8px;
+}
+.preview-agent-card__stats .stat--center {
+  text-align: center;
+}
+.preview-agent-card__stats .stat--center span {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+.preview-agent-card__stats .stat--right {
+  text-align: right;
+}
+
+/* =============================================
+   Home CTA — Horizontal Layout Fix
+   ============================================= */
+.home-hero__cta {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.home-hero__cta .btn--lg {
+  width: auto;
+  min-width: 200px;
+}
+
+/* =============================================
+   Mobile: Agents / AgentDetail / CreateAgent
+   ============================================= */
+@media (max-width: 768px) {
+  .agent-card__stats {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .stat--center,
+  .stat--right {
+    text-align: left;
+  }
+  .agent-detail__record {
+    gap: 12px;
+  }
+  .home-hero__cta .btn--lg {
+    width: 100%;
+    min-width: unset;
+  }
+}

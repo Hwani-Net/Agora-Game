@@ -252,11 +252,11 @@ export default function CreateAgentPage() {
               <span className="stat__label">ELO</span>
               <span className="stat__value">1000</span>
             </div>
-            <div className="stat" style={{ textAlign: 'center' }}>
+            <div className="stat stat--center">
               <span className="stat__label">{t('agents.stats.win_loss')}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }}>{t('create_agent.preview_defaults.record_initial')}</span>
+              <span className="agent-card__record">{t('create_agent.preview_defaults.record_initial')}</span>
             </div>
-            <div className="stat" style={{ textAlign: 'right' }}>
+            <div className="stat stat--right">
               <span className="stat__label">{t('agents.stats.tier')}</span>
               <span className="stat__value">Bronze</span>
             </div>
@@ -264,7 +264,7 @@ export default function CreateAgentPage() {
         </div>
 
         {error && (
-          <div className="wizard-validation" style={{ marginTop: 16 }}>⚠️ {error}</div>
+          <div className="wizard-validation wizard-validation--mt">⚠️ {error}</div>
         )}
       </div>
     );
@@ -274,7 +274,7 @@ export default function CreateAgentPage() {
 
   return (
     <div className="create-wizard animate-fade-in">
-      <button className="btn btn--ghost" onClick={() => navigate('/agents')} style={{ marginBottom: 16 }}>
+      <button className="btn btn--ghost create-wizard__back" onClick={() => navigate('/agents')}>
         ← {t('nav.agents')}
       </button>
 
@@ -291,7 +291,7 @@ export default function CreateAgentPage() {
             ← {t('common.prev')}
           </button>
         )}
-        <div style={{ flex: 1 }} />
+        <div className="wizard-nav__spacer" />
         {step < 2 ? (
           <button
             className="btn btn--primary btn--lg"
@@ -308,7 +308,7 @@ export default function CreateAgentPage() {
           >
             {creating ? (
               <>
-                <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2, marginRight: 8 }} />
+                <span className="spinner spinner--sm" />
                 {t('create_agent.messages.creating')}
               </>
             ) : (

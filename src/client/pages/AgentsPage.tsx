@@ -118,7 +118,7 @@ export default function AgentsPage() {
     return (
       <div className="grid grid--3">
         {Array.from({ length: 6 }).map((_, index) => (
-          <div key={index} className="card skeleton" style={{ height: 220 }} />
+          <div key={index} className="card skeleton skeleton--h220" />
         ))}
       </div>
     );
@@ -182,57 +182,40 @@ export default function AgentsPage() {
             <div
               key={agent.id}
               className="card card--agent stagger-item"
-              style={{ cursor: 'pointer', animationDelay: `${index * 0.08}s` }}
+              style={{ animationDelay: `${index * 0.08}s` }}
               onClick={() => navigate(`/agents/${agent.id}`)}
               role="button"
               aria-label={`${agent.name} profile view`}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 12 }}>
+              <div className="agent-card__header">
                 <div>
-                  <h3 style={{ fontSize: '1.075rem', fontWeight: 700 }}>
+                  <h3 className="agent-card__name">
                     {getFactionEmoji(agent.faction)} {agent.name}
                   </h3>
-                  <span
-                    style={{
-                      fontSize: '0.825rem',
-                      color: 'var(--text-muted)',
-                      fontWeight: 500,
-                    }}
-                  >
+                  <span className="agent-card__faction">
                     {getFactionLabel(agent.faction, t)}
                   </span>
                 </div>
                 <span className={tierClass(agent.tier)}>{agent.tier}</span>
               </div>
-              <p
-                style={{
-                  fontSize: '0.825rem',
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.6,
-                  marginBottom: 16,
-                  overflow: 'hidden',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical',
-                }}
-              >
+              <p className="agent-card__persona">
                 {agent.persona}
               </p>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div className="agent-card__stats">
                 <div className="stat">
                   <span className="stat__label">{t('agents.stats.elo')}</span>
-                  <span className="stat__value" style={{ fontSize: '1.125rem' }}>
+                  <span className="stat__value">
                     {agent.elo_score}
                   </span>
                 </div>
-                <div className="stat" style={{ textAlign: 'center' }}>
+                <div className="stat stat--center">
                   <span className="stat__label">{t('agents.stats.win_loss')}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.875rem', fontWeight: 600 }}>
-                    <span style={{ color: 'var(--success)' }}>{agent.wins}{t('agents.stats.win')}</span>
+                  <span className="agent-card__record">
+                    <span className="agent-card__record-win">{agent.wins}{t('agents.stats.win')}</span>
                     {' '}
-                    <span style={{ color: 'var(--danger)' }}>{agent.losses}{t('agents.stats.loss')}</span>
+                    <span className="agent-card__record-loss">{agent.losses}{t('agents.stats.loss')}</span>
                     {' '}
-                    <span style={{ color: 'var(--text-muted)' }}>{agent.draws}{t('agents.stats.draw')}</span>
+                    <span className="agent-card__record-draw">{agent.draws}{t('agents.stats.draw')}</span>
                   </span>
                 </div>
               </div>
