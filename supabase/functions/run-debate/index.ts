@@ -357,7 +357,7 @@ async function runDebateCore(
     .eq("id", loserId);
 
   // Update debate record
-  await supabase
+  const { error: updateError } = await supabase
     .from("debates")
     .update({
       rounds,
@@ -369,6 +369,10 @@ async function runDebateCore(
       completed_at: new Date().toISOString(),
     })
     .eq("id", debateId);
+
+  if (updateError) {
+    console.error("Failed to update debate record:", updateError);
+  }
 
   // Update stock prices
   const { data: winnerStock } = await supabase
