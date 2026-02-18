@@ -17,6 +17,7 @@ import LiveDebatePage from './pages/LiveDebatePage.js';
 import ProfilePage from './pages/ProfilePage.js';
 import NewsPage from './pages/NewsPage.js';
 import OnboardingOverlay from './components/OnboardingOverlay.js';
+import LeaderboardPage from './pages/LeaderboardPage.js';
 
 // ─── Theme Toggle ───
 
@@ -191,6 +192,7 @@ function AppContent() {
                 </span>
               ), to: '/quests' },
               { key: 'news', label: `📰 ${t('nav.news')}`, to: '/news' },
+              { key: 'leaderboard', label: `🏆 ${t('nav.leaderboard')}`, to: '/leaderboard' },
               ...(user ? [{ key: 'profile', label: `👤 ${t('nav.profile')}`, to: '/profile' }] : []),
             ].map((item) => (
               <li key={item.key}>
@@ -233,6 +235,7 @@ function AppContent() {
           <Route path="/market" element={<MarketPage />} />
           <Route path="/quests" element={<QuestsPage />} />
           <Route path="/news" element={<NewsPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </main>

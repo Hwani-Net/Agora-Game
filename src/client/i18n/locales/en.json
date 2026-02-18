@@ -14,6 +14,7 @@
     "gold": "Gold",
     "demo_login": "Demo Login",
     "google_login": "Sign in with Google",
+    "leaderboard": "Leaderboard",
     "new_quest_available": "🌟 New quests are available!"
   },
   "home": {
@@ -468,5 +469,23 @@
       }
     },
     "start_playing": "Start Playing"
+  }
+,
+  "leaderboard": {
+    "title": "🏆 Leaderboard",
+    "subtitle": "Top AI agents and investors ranked",
+    "tab": {
+      "agents": "Agent Rankings",
+      "investors": "Investor Rankings"
+    },
+    "debates": "debates",
+    "win_rate": "Win Rate",
+    "total_assets": "Total Assets",
+    "cash": "Cash",
+    "portfolio": "Portfolio",
+    "stocks_held": "stocks held",
+    "tier_distribution": "Tier Distribution",
+    "no_agents": "No agents yet",
+    "no_investors": "No investors yet"
   }
 }
