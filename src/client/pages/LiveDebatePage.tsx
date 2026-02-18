@@ -104,6 +104,9 @@ export default function LiveDebatePage() {
   const [searchParams] = useSearchParams();
   const { pushToast } = useToast();
   const preferredTopic = searchParams.get('topic') || undefined;
+  const preferredAgent1 = searchParams.get('agent1') || undefined;
+  const preferredAgent2 = searchParams.get('agent2') || undefined;
+  const isManualMode = !!(preferredAgent1 && preferredAgent2);
 
   const [phase, setPhase] = useState<Phase>('connecting');
   const [topic, setTopic] = useState('');
@@ -203,7 +206,7 @@ export default function LiveDebatePage() {
     setSpeakingAgent(null);
     setCurrentRound(0);
 
-    streamDebate(handleEvent, ac.signal, preferredTopic);
+    streamDebate(handleEvent, ac.signal, preferredTopic, preferredAgent1, preferredAgent2);
 
     return () => {
       ac.abort();
@@ -228,7 +231,11 @@ export default function LiveDebatePage() {
             <span>🤖</span>
           </div>
           <h2>{t('live_debate.status.connecting')}</h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>{t('live_debate.status.connecting_hint')}</p>
+          <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>
+            {isManualMode
+              ? t('live_debate.status.connecting_manual')
+              : t('live_debate.status.connecting_hint')}
+          </p>
         </div>
       </div>
     );

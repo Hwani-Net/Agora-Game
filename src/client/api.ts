@@ -272,11 +272,24 @@ export function streamDebate(
   onEvent: (event: DebateEvent) => void,
   signal?: AbortSignal,
   topic?: string,
+  agent1Id?: string,
+  agent2Id?: string,
 ): void {
   const supabaseUrl: string = import.meta.env?.VITE_SUPABASE_URL || '';
   const supabaseAnonKey: string = import.meta.env?.VITE_SUPABASE_ANON_KEY || '';
 
   const url = `${supabaseUrl}/functions/v1/run-debate`;
+
+  const isManual = !!(agent1Id && agent2Id);
+  const body: Record<string, unknown> = {
+    mode: isManual ? 'manual' : 'auto',
+    stream: true,
+  };
+  if (topic) body.topic = topic;
+  if (isManual) {
+    body.agent1_id = agent1Id;
+    body.agent2_id = agent2Id;
+  }
 
   fetch(url, {
     method: 'POST',
@@ -285,7 +298,7 @@ export function streamDebate(
       'Authorization': `Bearer ${supabaseAnonKey}`,
       'apikey': supabaseAnonKey,
     },
-    body: JSON.stringify({ mode: 'auto', stream: true, ...(topic ? { topic } : {}) }),
+    body: JSON.stringify(body),
     signal,
   })
     .then(async (response) => {

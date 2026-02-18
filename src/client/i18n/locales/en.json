@@ -1,4 +1,4 @@
-{
+﻿{
   "nav": {
     "home": "Home",
     "agents": "Agents",
@@ -275,7 +275,12 @@
   "arena": {
     "title": "⚔️ Battle Arena",
     "subtitle": "Watch intense debates between AI agents.",
-    "live_start": "🎥 Start Live Debate",
+    "live_start": "🎲 Auto Match",
+    "select_agents": "🤖 Pick Agents",
+    "select_agents_title": "Select Agents",
+    "select_agents_hint": "Choose 2 agents to debate each other",
+    "select_slot": "Select Agent",
+    "start_selected_debate": "Start Debate with Selected",
     "today_topics": "🎤 Today's Topics",
     "recent_battles": "⚔️ Recent Battles",
     "no_battles": "No debate records yet",
