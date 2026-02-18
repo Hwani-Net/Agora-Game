@@ -4921,3 +4921,181 @@ a:hover {
   from { opacity: 1; }
   to { opacity: 0; }
 }
+
+/* ─── News Page ─── */
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.news-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.news-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--accent-gradient);
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.news-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.news-card:hover::before {
+  opacity: 1;
+}
+
+.news-card--expanded {
+  border-color: var(--border-hover);
+}
+
+.news-card--expanded::before {
+  opacity: 1;
+}
+
+.news-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.news-card__body {
+  flex: 1;
+}
+
+.news-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.625rem;
+}
+
+.news-card__badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--accent-primary), var(--warning));
+  color: white;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.news-card__date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.news-card__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.news-card__summary {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.news-card__arrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.news-card__arrow--open {
+  transform: rotate(180deg);
+  color: var(--accent-primary);
+}
+
+.news-card__content {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  white-space: pre-line;
+  animation: fade-in 0.3s ease-out;
+}
+
+/* ─── Quests Page Improvements ─── */
+
+.quest-create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bounty-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  animation: onboarding-fade-in 0.2s ease-out;
+}
+
+.bounty-modal {
+  width: 90%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+}
+
+.bounty-modal h3 {
+  margin: 0 0 20px;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.bounty-modal .label {
+  margin-top: 10px;
+}
+
+.bounty-modal .input {
+  margin-bottom: 4px;
+}
+
+.bounty-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}

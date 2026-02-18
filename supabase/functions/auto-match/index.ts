@@ -1,14 +1,9 @@
 /**
  * auto-match — Supabase Edge Function
  * ====================================
- * Automatically triggers a debate between two random agents.
- * Can be called by Supabase cron or manually.
- *
- * Usage: supabase.functions.invoke('auto-match')
- * Cron: Can be scheduled via pg_cron or external scheduler.
+ * Automatically picks two random agents and invokes run-debate.
+ * Uses fetch with SUPABASE_ANON_KEY (default env provided by Supabase).
  */
-
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,8 +19,14 @@ Deno.serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Use dynamic import for supabase-js
+    const { createClient } = await import(
+      "https://esm.sh/@supabase/supabase-js@2.49.4"
+    );
+    const supabase = createClient(supabaseUrl, serviceKey);
 
     // Check if there's already a debate in progress
     const { data: activeDebates } = await supabase
@@ -40,29 +41,35 @@ Deno.serve(async (req: Request) => {
           message: "이미 진행 중인 토론이 있습니다.",
           debate_id: activeDebates[0].id,
         }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Invoke run-debate in auto mode
-    const { data, error } = await supabase.functions.invoke("run-debate", {
-      body: { mode: "auto" },
+    // Call run-debate with proper Supabase headers
+    const runDebateUrl = `${supabaseUrl}/functions/v1/run-debate`;
+    const response = await fetch(runDebateUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": anonKey,
+        "Authorization": `Bearer ${anonKey}`,
+      },
+      body: JSON.stringify({ mode: "auto" }),
     });
 
-    if (error) {
-      throw new Error(error.message || "토론 시작 실패");
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`run-debate failed (${response.status}): ${errorBody}`);
     }
+
+    const data = await response.json();
 
     return new Response(
       JSON.stringify({
         message: "자동 매칭 토론이 완료되었습니다!",
         debate: data,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
