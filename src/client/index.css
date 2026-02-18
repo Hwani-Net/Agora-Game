@@ -5563,3 +5563,63 @@ a:hover {
 .arena-battle__name.agent-link {
   font-weight: 700;
 }
+
+/* ─── Agents Search ─── */
+.agents-search {
+  position: relative;
+  margin-bottom: 12px;
+}
+.agents-search__input {
+  width: 100%;
+  padding-right: 36px;
+}
+.agents-search__clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.agents-search__clear:hover {
+  color: var(--text-primary);
+}
+
+/* ─── Live Connecting Animation ─── */
+.live-connecting-anim {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.live-connecting-dots {
+  font-size: 2rem;
+  letter-spacing: 4px;
+  animation: blink 1.2s step-end infinite;
+  color: var(--accent-primary);
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  33% { opacity: 0.3; }
+  66% { opacity: 0.7; }
+}
+
+/* ─── Nav Badge (notification dot) ─── */
+.nav-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}

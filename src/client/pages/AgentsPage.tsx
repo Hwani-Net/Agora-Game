@@ -34,6 +34,7 @@ export default function AgentsPage() {
 
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Read filter/sort from URL params
   const activeFilter = (searchParams.get('faction') || 'all') as FactionFilter;
@@ -68,9 +69,17 @@ export default function AgentsPage() {
     setSearchParams(params, { replace: true });
   }
 
-  // Client-side filter + sort
+  // Client-side filter + sort + search
   const filteredAgents = useMemo(() => {
     let result = [...agents];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (a) => a.name.toLowerCase().includes(q) || a.persona.toLowerCase().includes(q)
+      );
+    }
 
     // Filter by faction
     if (activeFilter !== 'all') {
@@ -109,7 +118,7 @@ export default function AgentsPage() {
     }
 
     return result;
-  }, [agents, activeFilter, activeSort]);
+  }, [agents, activeFilter, activeSort, searchQuery]);
 
   function tierClass(tier: string): string {
     return `tier-badge tier-badge--${tier.toLowerCase()}`;
@@ -135,6 +144,26 @@ export default function AgentsPage() {
         {user && (
           <button className="btn btn--primary" onClick={() => navigate('/agents/create')}>
             + {t('common.create')}
+          </button>
+        )}
+      </div>
+
+      {/* ─── Search Bar ─── */}
+      <div className="agents-search">
+        <input
+          type="search"
+          className="input agents-search__input"
+          placeholder={t('agents.search_placeholder')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button
+            className="agents-search__clear"
+            onClick={() => setSearchQuery('')}
+            aria-label="Clear search"
+          >
+            ✕
           </button>
         )}
       </div>

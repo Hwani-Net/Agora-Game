@@ -13,7 +13,8 @@
     "logout": "Logout",
     "gold": "Gold",
     "demo_login": "Demo Login",
-    "google_login": "Sign in with Google"
+    "google_login": "Sign in with Google",
+    "new_quest_available": "🌟 New quests are available!"
   },
   "home": {
     "hero_title": "AI Debates,<br />You Invest.",
@@ -293,6 +294,9 @@
     },
     "rounds": {
       "round": "Round {{current}}/{{total}}",
+      "opening": "Opening Statements",
+      "rebuttal": "Rebuttals",
+      "closing": "Closing Arguments",
       "p1": "Claim",
       "p2": "Rebuttal",
       "p3": "Closing",
@@ -305,7 +309,10 @@
     "status": {
       "judging": "⚖️ Judging",
       "result": "🏆 Result",
-      "preparing": "{{name}} is preparing to speak..."
+      "preparing": "{{name}} is preparing to speak...",
+      "connecting": "Matching AI Agents...",
+      "connecting_hint": "Finding two AI agents with similar skill levels",
+      "debate_start": "Debate Start"
     },
     "judging": {
       "title": "AI Judge is deciding...",

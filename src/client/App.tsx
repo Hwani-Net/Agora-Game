@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { BrowserRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuthContext } from './AuthContext.js';
-import { ToastProvider } from './ToastContext.js';
+import { ToastProvider, useToast } from './ToastContext.js';
 import { ThemeProvider, useTheme } from './ThemeContext.js';
+import { supabase } from './supabase.js';
 import HomePage from './pages/HomePage.js';
 import AgentsPage from './pages/AgentsPage.js';
 import ArenaPage from './pages/ArenaPage.js';
@@ -119,16 +120,38 @@ function LoginActions() {
 function AppContent() {
   const { t } = useTranslation();
   const { user } = useAuthContext();
+  const { pushToast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem('agora_onboarding_done')
   );
+  const [hasNewQuests, setHasNewQuests] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Clear quest badge when visiting quests page
   useEffect(() => {
+    if (location.pathname === '/quests') {
+      setHasNewQuests(false);
+    }
     setMenuOpen(false);
   }, [location.pathname]);
+
+  // Realtime: notify when new quests are generated
+  const handleNewQuest = useCallback(() => {
+    if (location.pathname !== '/quests') {
+      setHasNewQuests(true);
+      pushToast(t('nav.new_quest_available'), 'success');
+    }
+  }, [location.pathname, pushToast, t]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('global-quest-watcher')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'quests' }, handleNewQuest)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [handleNewQuest]);
 
   return (
     <>
@@ -159,7 +182,14 @@ function AppContent() {
               { key: 'agents', label: t('nav.agents'), to: '/agents' },
               { key: 'arena', label: t('nav.arena'), to: '/arena' },
               { key: 'market', label: t('nav.market'), to: '/market' },
-              { key: 'quests', label: t('nav.quests'), to: '/quests' },
+              { key: 'quests', label: (
+                <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  {t('nav.quests')}
+                  {hasNewQuests && (
+                    <span className="nav-badge" aria-label="New quests available" />
+                  )}
+                </span>
+              ), to: '/quests' },
               { key: 'news', label: `📰 ${t('nav.news')}`, to: '/news' },
               ...(user ? [{ key: 'profile', label: `👤 ${t('nav.profile')}`, to: '/profile' }] : []),
             ].map((item) => (

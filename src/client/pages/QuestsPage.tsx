@@ -65,6 +65,32 @@ export default function QuestsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // ─── Realtime: Auto-detect quest progress ───
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('quest-progress-tracker')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stock_ownership' }, () => {
+        checkProgress();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'agents' }, () => {
+        checkProgress();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'agent_cheers' }, () => {
+        checkProgress();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'debates' }, () => {
+        checkProgress();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   async function loadQuests() {
     setLoading(true);
     try {

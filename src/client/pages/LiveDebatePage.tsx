@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { streamDebate, type DebateEvent, type DebateResult } from '../api.js';
 import { useToast } from '../ToastContext.js';
 import { getFactionEmoji } from '../utils/factions.js';
@@ -30,11 +31,11 @@ interface RoundScore {
   reason: string;
 }
 
-function getRoundLabel(round: number) {
-  if (round === 1) return 'Opening Statements';
-  if (round === 2) return 'Rebuttals';
-  if (round === 3) return 'Closing Arguments';
-  return `Round ${round}`;
+function getRoundLabel(round: number, t: TFunction) {
+  if (round === 1) return t('live_debate.rounds.opening');
+  if (round === 2) return t('live_debate.rounds.rebuttal');
+  if (round === 3) return t('live_debate.rounds.closing');
+  return String(t('live_debate.rounds.round', { current: round, total: 3 }));
 }
 function useTypewriter(text: string, speed = 18) {
   const [displayed, setDisplayed] = useState('');
@@ -127,7 +128,7 @@ export default function LiveDebatePage() {
         setAgent2(event.data.agent2);
         setDebateId(event.data.debateId);
         // Initialize chart with 50:50 start
-        setRoundScores([{ round: 0, agent1: 50, agent2: 50, reason: '토론 시작' }]);
+        setRoundScores([{ round: 0, agent1: 50, agent2: 50, reason: t('live_debate.status.debate_start') }]);
         setTimeout(() => setPhase('debating'), 1200);
         break;
 
@@ -214,6 +215,23 @@ export default function LiveDebatePage() {
     }
   }, [arguments_, speakingAgent, phase]);
 
+  // ─── Render: Connecting ───
+  if (phase === 'connecting') {
+    return (
+      <div className="live-page">
+        <div className="live-center-msg">
+          <div className="live-connecting-anim">
+            <span>🤖</span>
+            <span className="live-connecting-dots">···</span>
+            <span>🤖</span>
+          </div>
+          <h2>{t('live_debate.status.connecting')}</h2>
+          <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>{t('live_debate.status.connecting_hint')}</p>
+        </div>
+      </div>
+    );
+  }
+
   // ─── Render: Matched ───
   if (phase === 'matched' && agent1 && agent2) {
      // ... (existing matched render)
@@ -273,7 +291,7 @@ export default function LiveDebatePage() {
             ? t('live_debate.status.judging')
             : phase === 'result'
               ? t('live_debate.status.result')
-              : `${t('live_debate.rounds.round', { current: currentRound, total: 3 })} · ${getRoundLabel(currentRound)}`}
+              : `${t('live_debate.rounds.round', { current: currentRound, total: 3 })} · ${getRoundLabel(currentRound, t)}`}
         </div>
       </div>
 
@@ -295,7 +313,7 @@ export default function LiveDebatePage() {
             key={r}
             className={`live-progress__step ${r < currentRound ? 'done' : ''} ${r === currentRound ? 'active' : ''}`}
           >
-            <span>{getRoundLabel(r)}</span>
+            <span>{getRoundLabel(r, t)}</span>
           </div>
         ))}
         <div className={`live-progress__step ${phase === 'judging' || phase === 'result' ? 'active' : ''}`}>
