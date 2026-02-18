@@ -4879,3 +4879,45 @@ a:hover {
   text-align: center;
   padding: 24px 0;
 }
+
+/* ─── Onboarding Overlay ─── */
+
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  animation: onboarding-fade-in 0.3s ease-out;
+}
+
+.onboarding-overlay--exit {
+  animation: onboarding-fade-out 0.3s ease-in forwards;
+}
+
+.onboarding-card {
+  position: relative;
+  max-width: 500px;
+  width: 90%;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-hover) !important;
+  box-shadow: 0 24px 80px rgba(99, 102, 241, 0.2), 0 0 40px rgba(99, 102, 241, 0.1) !important;
+  transform: none !important;
+}
+
+.onboarding-card:hover {
+  transform: none !important;
+}
+
+@keyframes onboarding-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes onboarding-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
