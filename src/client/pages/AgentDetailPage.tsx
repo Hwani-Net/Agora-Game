@@ -135,12 +135,12 @@ export default function AgentDetailPage() {
   if (loading) {
     return (
       <div className="agent-detail">
-        <div className="card skeleton skeleton--h220" style={{ marginBottom: 24 }} />
+        <div className="card skeleton skeleton--h220 mb-24" />
         <div className="grid grid--2">
           <div className="card skeleton skeleton--h160" />
           <div className="card skeleton skeleton--h160" />
         </div>
-        <div className="card skeleton skeleton--h240" style={{ marginTop: 24 }} />
+        <div className="card skeleton skeleton--h240 mt-24" />
       </div>
     );
   }

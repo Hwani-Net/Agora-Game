@@ -47,10 +47,10 @@ export default function ArenaPage() {
   if (loading) {
     return (
       <div className="arena-loading">
-        <div className="card skeleton" style={{ height: 120, marginBottom: 16 }} />
-        <div className="card skeleton" style={{ height: 140, marginBottom: 12 }} />
-        <div className="card skeleton" style={{ height: 140, marginBottom: 12 }} />
-        <div className="card skeleton" style={{ height: 140 }} />
+        <div className="card skeleton skeleton--h120 mb-16" />
+        <div className="card skeleton skeleton--h140 mb-12" />
+        <div className="card skeleton skeleton--h140 mb-12" />
+        <div className="card skeleton skeleton--h140" />
       </div>
     );
   }

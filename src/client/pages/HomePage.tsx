@@ -153,13 +153,13 @@ export default function HomePage() {
         </div>
 
         {topLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="home-leaderboard-skeleton">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="skeleton" style={{ height: 48, borderRadius: 'var(--radius)' }} />
+              <div key={i} className="skeleton skeleton--h48" />
             ))}
           </div>
         ) : topAgents.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '24px 0' }}>
+          <p className="home-leaderboard-empty">
             {t('home.leaderboard.no_data')}
           </p>
         ) : (

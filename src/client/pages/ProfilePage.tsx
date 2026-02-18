@@ -58,10 +58,10 @@ export default function ProfilePage() {
   if (authLoading) {
     return (
       <div className="profile-page animate-fade-in">
-        <div className="card skeleton" style={{ height: 200, marginBottom: 24 }} />
+        <div className="card skeleton skeleton--h200 mb-24" />
         <div className="grid grid--2">
-          <div className="card skeleton" style={{ height: 160 }} />
-          <div className="card skeleton" style={{ height: 160 }} />
+          <div className="card skeleton skeleton--h160" />
+          <div className="card skeleton skeleton--h160" />
         </div>
       </div>
     );
@@ -101,7 +101,7 @@ export default function ProfilePage() {
           </div>
           <div className="profile-info-item">
             <span className="stat__label">{t('profile.email')}</span>
-            <span className="stat__value" style={{ fontSize: '0.9rem' }}>{user.email || '-'}</span>
+            <span className="stat__value stat__value--sm">{user.email || '-'}</span>
           </div>
           <div className="profile-info-item">
             <span className="stat__label">{t('profile.membership')}</span>
@@ -137,15 +137,15 @@ export default function ProfilePage() {
 
       {/* ─── My Portfolio ─── */}
       <section className="card profile-card">
-        <div className="section-header" style={{ marginBottom: 16 }}>
+        <div className="section-header mb-16">
           <h3 className="section-header__title">💼 {t('profile.my_portfolio')}</h3>
         </div>
         {loading ? (
-          <div className="spinner" style={{ margin: '24px auto' }} />
+          <div className="spinner spinner--center" />
         ) : portfolio.length === 0 ? (
-          <div className="empty-state" style={{ padding: '24px 0' }}>
+          <div className="empty-state p-y-24">
             <p>{t('profile.no_portfolio')}</p>
-            <button className="btn btn--primary btn--sm" onClick={() => navigate('/market')} style={{ marginTop: 12 }}>
+            <button className="btn btn--primary btn--sm mt-12" onClick={() => navigate('/market')}>
               {t('profile.go_market')}
             </button>
           </div>
@@ -173,7 +173,7 @@ export default function ProfilePage() {
               </div>
             ))}
             <div className="profile-portfolio-total">
-              <span style={{ gridColumn: 'span 4' }}>{t('profile.total_assets')}</span>
+              <span className="grid-col-span-4">{t('profile.total_assets')}</span>
               <span>{fmt(Math.round(portfolioValue))} G</span>
               <span className={totalProfit >= 0 ? 'text-profit' : 'text-loss'}>
                 {totalProfit >= 0 ? '+' : ''}{fmt(Math.round(totalProfit))} G
@@ -207,7 +207,7 @@ export default function ProfilePage() {
         {tradeTab === 'stock' && (
           <div className="trade-history-table">
             {trades.length === 0 ? (
-              <div className="empty-state" style={{ padding: '24px 0' }}>
+              <div className="empty-state p-y-24">
                 <p>{t('profile.no_trades')}</p>
               </div>
             ) : (
@@ -222,7 +222,7 @@ export default function ProfilePage() {
                 </div>
                 {trades.map((tr) => (
                   <div key={tr.id} className="trade-history-row">
-                    <span style={{ fontWeight: 600 }}>{tr.agent_name}</span>
+                    <span className="text-bold">{tr.agent_name}</span>
                     <span>
                       <span className={`trade-type-badge trade-type-badge--${tr.type}`}>
                         {t(`profile.trade_type_${tr.type}`)}
@@ -231,7 +231,7 @@ export default function ProfilePage() {
                     <span>{tr.shares}</span>
                     <span>{fmt(Math.round(tr.price))} G</span>
                     <span>{fmt(Math.round(tr.total_amount))} G</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    <span className="text-sm-secondary">
                       {fmtDate(tr.timestamp)}
                     </span>
                   </div>
@@ -253,7 +253,7 @@ export default function ProfilePage() {
         {tradeTab === 'gold' && (
           <div className="trade-history-table">
             {goldTxns.length === 0 ? (
-              <div className="empty-state" style={{ padding: '24px 0' }}>
+              <div className="empty-state p-y-24">
                 <p>{t('profile.no_gold_history')}</p>
               </div>
             ) : (
@@ -276,8 +276,8 @@ export default function ProfilePage() {
                           {g.type}
                         </span>
                       </span>
-                      <span style={{ fontSize: '0.8rem' }}>{g.description || '-'}</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      <span className="text-sm-muted">{g.description || '-'}</span>
+                      <span className="text-sm-secondary">
                         {fmtDate(g.timestamp)}
                       </span>
                     </div>

@@ -111,9 +111,9 @@ export default function DebateDetailPage() {
   if (loading) {
     return (
       <div className="debate-detail">
-        <div className="card skeleton" style={{ height: 180, marginBottom: 24 }} />
-        <div className="card skeleton" style={{ height: 240, marginBottom: 24 }} />
-        <div className="card skeleton" style={{ height: 200 }} />
+        <div className="card skeleton skeleton--h180 mb-24" />
+        <div className="card skeleton skeleton--h240 mb-24" />
+        <div className="card skeleton skeleton--h200" />
       </div>
     );
   }

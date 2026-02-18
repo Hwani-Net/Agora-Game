@@ -4810,3 +4810,72 @@ a:hover {
   background: rgba(107, 114, 128, 0.1);
   color: var(--text-muted);
 }
+
+/* =============================================
+   Utility Classes — Spacing, Sizing, Text
+   ============================================= */
+/* Skeleton heights */
+.skeleton--h120 { height: 120px; }
+.skeleton--h140 { height: 140px; }
+.skeleton--h180 { height: 180px; }
+.skeleton--h200 { height: 200px; }
+
+/* Spacing */
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.p-y-24 { padding: 24px 0; }
+
+/* Spinner sizes */
+.spinner--md {
+  width: 32px;
+  height: 32px;
+  margin: 16px auto;
+}
+.spinner--icon {
+  width: 24px;
+  height: 24px;
+  margin: 8px auto;
+}
+.spinner--center {
+  margin: 24px auto;
+}
+
+/* Text */
+.text-bold { font-weight: 600; }
+.text-sm-secondary {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.text-sm-muted {
+  font-size: 0.8rem;
+}
+.text-icon-xl { font-size: 3rem; }
+
+/* Profile stat email */
+.stat__value--sm { font-size: 0.9rem; }
+
+/* Grid span */
+.grid-col-span-4 { grid-column: span 4; }
+
+/* Home leaderboard skeleton */
+.home-leaderboard-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton--h48 {
+  height: 48px;
+  border-radius: var(--radius);
+}
+
+/* Home leaderboard empty */
+.home-leaderboard-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 24px 0;
+}

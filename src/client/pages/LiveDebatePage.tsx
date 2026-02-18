@@ -198,7 +198,7 @@ export default function LiveDebatePage() {
           <div className="live-swords">⚔️</div>
           <h2>{t('live_debate.matching.title')}</h2>
           <p>{t('live_debate.matching.subtitle')}</p>
-          <div className="spinner" style={{ width: 32, height: 32, margin: '16px auto' }} />
+          <div className="spinner spinner--md" />
         </div>
       </div>
     );
@@ -231,10 +231,10 @@ export default function LiveDebatePage() {
     return (
       <div className="live-page">
         <div className="live-center-msg">
-          <div style={{ fontSize: '3rem' }}>❌</div>
+          <div className="text-icon-xl">❌</div>
           <h2>{t('live_debate.error.title')}</h2>
           <p>{errorMsg}</p>
-          <button className="btn btn--primary" onClick={() => navigate('/arena')} style={{ marginTop: 16 }}>
+          <button className="btn btn--primary mt-16" onClick={() => navigate('/arena')}>
             {t('live_debate.error.back')}
           </button>
         </div>
@@ -304,7 +304,7 @@ export default function LiveDebatePage() {
           <div className="live-judging animate-fade-in">
             <div className="live-swords">⚖️</div>
             <h3>{t('live_debate.judging.title')}</h3>
-            <div className="spinner" style={{ width: 24, height: 24, margin: '8px auto' }} />
+            <div className="spinner spinner--icon" />
           </div>
         )}
 
