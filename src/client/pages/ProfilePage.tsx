@@ -84,7 +84,7 @@ export default function ProfilePage() {
   return (
     <div className="profile-page animate-fade-in">
       {/* ─── Header ─── */}
-      <div className="section-header" style={{ marginBottom: 24 }}>
+      <div className="section-header">
         <div>
           <h2 className="section-header__title">{t('profile.title')}</h2>
           <p className="section-header__subtitle">{t('profile.subtitle')}</p>
@@ -92,7 +92,7 @@ export default function ProfilePage() {
       </div>
 
       {/* ─── Account Info ─── */}
-      <section className="card profile-card" style={{ marginBottom: 24 }}>
+      <section className="card profile-card">
         <h3>📋 {t('profile.account')}</h3>
         <div className="profile-info-grid">
           <div className="profile-info-item">
@@ -113,7 +113,7 @@ export default function ProfilePage() {
       </section>
 
       {/* ─── Investment Summary ─── */}
-      <section className="card profile-card" style={{ marginBottom: 24 }}>
+      <section className="card profile-card">
         <h3>📊 {t('profile.portfolio_summary')}</h3>
         <div className="profile-stats-grid">
           <div className="profile-stat-card">
@@ -136,7 +136,7 @@ export default function ProfilePage() {
       </section>
 
       {/* ─── My Portfolio ─── */}
-      <section className="card profile-card" style={{ marginBottom: 24 }}>
+      <section className="card profile-card">
         <div className="section-header" style={{ marginBottom: 16 }}>
           <h3 className="section-header__title">💼 {t('profile.my_portfolio')}</h3>
         </div>

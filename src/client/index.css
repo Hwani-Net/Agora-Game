@@ -4266,3 +4266,312 @@ a:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════════ */
+/*  Phase 3.5 - Home Page                         */
+/* ═══════════════════════════════════════════════ */
+
+.home-hero {
+  text-align: center;
+  padding: 80px 0 60px;
+}
+.home-hero__title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.home-hero__subtitle {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  max-width: 540px;
+  margin: 0 auto 32px;
+  line-height: 1.7;
+}
+.home-hero__cta {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.home-feature-card {
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.home-feature-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1);
+}
+.home-feature-card__icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+.home-feature-card__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.home-feature-card__desc {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.home-stat-card {
+  text-align: center;
+  transition: all 0.2s;
+}
+.home-stat-card:hover {
+  transform: scale(1.03);
+}
+.home-stat-card__icon {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+.home-stat-card__value {
+  font-size: 1.75rem;
+}
+
+.home-features-section,
+.home-stats-section,
+.home-leaderboard-section {
+  margin-bottom: 48px;
+}
+
+/* ═══════════════════════════════════════════════ */
+/*  Phase 3.5 - Profile Page                      */
+/* ═══════════════════════════════════════════════ */
+
+.profile-page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+.profile-card {
+  margin-bottom: 24px;
+}
+.profile-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.profile-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.profile-stat-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(8px);
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.stat__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.stat__value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  margin-top: 4px;
+}
+.stat__value--gold {
+  color: var(--tier-gold);
+}
+.stat__value--highlight {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Portfolio Table */
+.profile-portfolio-table {
+  overflow-x: auto;
+}
+.profile-portfolio-header,
+.profile-portfolio-row,
+.profile-portfolio-total {
+  display: grid;
+  grid-template-columns: 2fr repeat(5, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+}
+.profile-portfolio-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.profile-portfolio-row {
+  border-bottom: 1px solid rgba(128, 128, 128, 0.06);
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+.profile-portfolio-row:hover {
+  background: rgba(99, 102, 241, 0.03);
+}
+.profile-portfolio-agent {
+  font-weight: 600;
+}
+.profile-portfolio-total {
+  font-weight: 700;
+  padding-top: 12px;
+  border-top: 2px solid var(--border);
+  margin-top: 4px;
+}
+
+.text-profit { color: var(--success); font-weight: 600; }
+.text-loss { color: var(--danger); font-weight: 600; }
+
+/* Trade History */
+.trade-history-table,
+.gold-history-table {
+  margin-top: 16px;
+}
+.trade-history-header,
+.trade-history-row {
+  display: grid;
+  grid-template-columns: 2fr 80px 60px 1fr 1fr 1.2fr;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+}
+.trade-history-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.trade-history-row {
+  border-bottom: 1px solid rgba(128, 128, 128, 0.06);
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+.trade-history-row:hover {
+  background: rgba(99, 102, 241, 0.03);
+}
+
+.trade-type-badge {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.trade-type-badge--buy, .trade-type-badge--earn {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+.trade-type-badge--sell, .trade-type-badge--spend {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+/* Gold History */
+.gold-history-header,
+.gold-history-row {
+  display: grid;
+  grid-template-columns: 120px 100px 1fr 1.2fr;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+}
+.gold-history-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.gold-history-row {
+  border-bottom: 1px solid rgba(128, 128, 128, 0.06);
+  font-size: 0.85rem;
+}
+
+.btn--load-more {
+  display: block;
+  margin: 16px auto 0;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-xl);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.badge--premium {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.15));
+  color: var(--tier-gold);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+.badge--free {
+  background: rgba(128, 128, 128, 0.08);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════════ */
+/*  Phase 3.5 - Home / Profile Mobile             */
+/* ═══════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .home-hero { padding: 48px 0 40px; }
+  .home-hero__title { font-size: clamp(1.5rem, 8vw, 2.5rem); }
+
+  .profile-portfolio-header,
+  .profile-portfolio-row,
+  .profile-portfolio-total {
+    grid-template-columns: 1.5fr 1fr 1fr;
+    font-size: 0.78rem;
+  }
+  .profile-portfolio-header span:nth-child(3),
+  .profile-portfolio-header span:nth-child(4),
+  .profile-portfolio-row span:nth-child(3),
+  .profile-portfolio-row span:nth-child(4) {
+    display: none;
+  }
+  .trade-history-header,
+  .trade-history-row {
+    grid-template-columns: 1.2fr 70px 50px 1fr;
+    font-size: 0.78rem;
+  }
+  .trade-history-header span:nth-child(5),
+  .trade-history-header span:nth-child(6),
+  .trade-history-row span:nth-child(5),
+  .trade-history-row span:nth-child(6) {
+    display: none;
+  }
+}
