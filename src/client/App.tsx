@@ -18,6 +18,7 @@ import ProfilePage from './pages/ProfilePage.js';
 import NewsPage from './pages/NewsPage.js';
 import OnboardingOverlay from './components/OnboardingOverlay.js';
 import LeaderboardPage from './pages/LeaderboardPage.js';
+import { getQuestTitleKey } from './utils/questMapping.js';
 
 // ─── Theme Toggle ───
 
@@ -146,6 +147,40 @@ function AppContent() {
     }
   }, [location.pathname, pushToast, t]);
 
+  // Realtime: notify when USER quests are completed
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`user-quests-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_quests',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const oldRecord = payload.old as { completed_at: string | null };
+          const newRecord = payload.new as { quest_id: string; completed_at: string | null };
+
+          // Check if just completed (old was null, new is not null)
+          if (!oldRecord.completed_at && newRecord.completed_at) {
+            const titleKey = getQuestTitleKey(newRecord.quest_id);
+            // Use translation or fallback
+            // Since we can't easily check if key exists, we rely on t() returning key if missing
+            // But better: define these keys in ko.json/en.json
+            pushToast(`🎉 ${t(titleKey)} ${t('quests.completed')}!`, 'success');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user, t, pushToast]);
+
+  // Global quest watcher (for new daily quests)
   useEffect(() => {
     const channel = supabase
       .channel('global-quest-watcher')

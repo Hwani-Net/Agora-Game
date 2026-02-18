@@ -18,21 +18,24 @@ interface Quest {
   creator_id?: string;
 }
 
-// Map DB Korean titles to i18n keys
-const QUEST_TITLE_MAP: Record<string, string> = {
-  "첫 토론 관전": "watch_debate",
-  "에이전트 응원": "cheer_agent",
-  "신규 에이전트 생성": "create_agent",
-  "주식 첫 거래": "first_trade",
+import { getQuestTitleKey } from '../utils/questMapping.js';
+
+interface UserQuest {
+  id: string;
+  quest_id: string;
+  progress: number;
+  target: number;
+  status: 'in_progress' | 'completed' | 'claimed';
+  updated_at: string;
+}
+
+// Fixed Daily Quests Definition (for display info)
+const DAILY_QUEST_DEFS: Record<string, { reward: number; icon: string }> = {
+  daily_trade: { reward: 100, icon: '📈' },
+  daily_debate: { reward: 50, icon: '🗳️' },
+  first_win: { reward: 500, icon: '🏆' },
 };
 
-// Quest completion conditions
-const QUEST_TARGETS: Record<string, number> = {
-  watch_debate: 1,
-  cheer_agent: 1,
-  create_agent: 1,
-  first_trade: 1,
-};
 
 export default function QuestsPage() {
   const { t, i18n } = useTranslation();
@@ -41,7 +44,7 @@ export default function QuestsPage() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'daily' | 'bounty'>('all');
-  const [progress, setProgress] = useState<Record<string, number>>({});
+  const [userQuests, setUserQuests] = useState<UserQuest[]>([]);
   const [claiming, setClaiming] = useState<string | null>(null);
   const [expandedQuestId, setExpandedQuestId] = useState<string | null>(null);
 
@@ -61,7 +64,7 @@ export default function QuestsPage() {
   }, [filter]);
 
   useEffect(() => {
-    if (user) checkProgress();
+    if (user) fetchUserQuests();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -70,18 +73,12 @@ export default function QuestsPage() {
     if (!user) return;
 
     const channel = supabase
-      .channel('quest-progress-tracker')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'stock_ownership' }, () => {
-        checkProgress();
+      .channel('quest-page-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_quests', filter: `user_id=eq.${user.id}` }, () => {
+        fetchUserQuests();
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'agents' }, () => {
-        checkProgress();
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'agent_cheers' }, () => {
-        checkProgress();
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'debates' }, () => {
-        checkProgress();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quests' }, () => {
+        loadQuests();
       })
       .subscribe();
 
@@ -104,47 +101,63 @@ export default function QuestsPage() {
   }
 
   // Check quest progress from DB
-  async function checkProgress() {
+  async function fetchUserQuests() {
     if (!user) return;
-    const prog: Record<string, number> = {};
-
     try {
-      // Check create_agent: how many agents user created
-      const { count: agentCount } = await supabase
-        .from('agents')
-        .select('*', { count: 'exact', head: true })
-        .eq('owner_id', user.id);
-      prog.create_agent = agentCount ?? 0;
-
-      // Check first_trade: any stock ownership entries
-      const { count: tradeCount } = await supabase
-        .from('stock_ownership')
-        .select('*', { count: 'exact', head: true })
+      const { data, error } = await supabase
+        .from('user_quests')
+        .select('*')
         .eq('user_id', user.id);
-      prog.first_trade = tradeCount ?? 0;
-
-      // watch_debate: check if user viewed any debate today (approximate: any debate exists)
-      const { count: debateCount } = await supabase
-        .from('debates')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', new Date().toISOString().split('T')[0]);
-      prog.watch_debate = debateCount && debateCount > 0 ? 1 : 0;
-
-      // cheer_agent: count user's cheers from agent_cheers table
-      const { count: cheerCount } = await supabase
-        .from('agent_cheers')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
-      prog.cheer_agent = cheerCount ?? 0;
-
+      
+      if (!error && data) {
+        setUserQuests(data as UserQuest[]);
+      }
     } catch {
-      // Silently fail — progress stays at 0
+      // ignore
     }
-
-    setProgress(prog);
   }
 
+  const handleDailyClaim = useCallback(async (uq: UserQuest) => {
+    if (!user || claiming) return;
+    setClaiming(uq.id);
+    const def = DAILY_QUEST_DEFS[uq.quest_id];
+    if (!def) return;
+
+    try {
+      // 1. Update user_quests status to 'claimed'
+      const { error } = await supabase
+        .from('user_quests')
+        .update({ status: 'claimed', claimed_at: new Date().toISOString() })
+        .eq('id', uq.id);
+      
+      if (error) throw error;
+
+      // 2. Grant gold
+      await supabase.from('gold_transactions').insert({
+        user_id: user.id,
+        amount: def.reward,
+        type: 'quest_reward',
+        description: `Daily Quest: ${uq.quest_id}`,
+      });
+
+      await supabase.rpc('add_gold', {
+        p_user_id: user.id,
+        p_amount: def.reward,
+      });
+
+      pushToast(t('quests.reward_claimed', { gold: def.reward }), 'success');
+      fetchUserQuests();
+    } catch {
+      pushToast(t('common.error'), 'error');
+    } finally {
+      setClaiming(null);
+    }
+  }, [user, claiming, pushToast, t]);
+
+  // Bounty Claim logic... (Needs refactoring if bounty flow is different, but keeping as is for backward compat)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClaim = useCallback(async (quest: Quest) => {
+    // ... Existing implementation for quests table ...
     if (!user || claiming) return;
     setClaiming(quest.id);
     try {
@@ -264,75 +277,86 @@ export default function QuestsPage() {
         </div>
       ) : (
         <div className="quest-list">
-          {quests.map((quest) => {
-            const questKey = QUEST_TITLE_MAP[quest.title];
-            const title = questKey ? t(`quests.items.${questKey}.title`) : quest.title;
-            const description = questKey ? t(`quests.items.${questKey}.desc`) : quest.description;
-            const target = questKey ? (QUEST_TARGETS[questKey] ?? 1) : 1;
-            const current = questKey ? (progress[questKey] ?? 0) : 0;
-            const isComplete = current >= target;
-            const isAlreadyClaimed = quest.status === 'completed';
+          {/* 1. Daily Quests from user_quests */}
+          {(filter === 'all' || filter === 'daily') && userQuests.map((uq) => {
+             const def = DAILY_QUEST_DEFS[uq.quest_id];
+             if (!def) return null; // Skip unknown
+             const titleKey = getQuestTitleKey(uq.quest_id);
+             const isComplete = uq.progress >= uq.target || uq.status === 'completed';
+             const isClaimed = uq.status === 'claimed'; // DB status
 
+             return (
+              <div key={uq.id} className={`card quest-card${isClaimed ? ' quest-card--completed' : ''}`}>
+                 <div className="quest-card__header">
+                   <div className="quest-card__title-group">
+                     <span className="quest-card__icon">{def.icon}</span>
+                     <h3 className="quest-card__title">{t(titleKey)}</h3>
+                   </div>
+                   <div className="quest-card__meta">
+                     {statusBadge(uq.status)}
+                     <span className="quest-card__reward">{def.reward} G</span>
+                   </div>
+                 </div>
+                 <p className="quest-card__desc">{t(`quests.desc_${uq.quest_id}`, { defaultValue: t(titleKey) })}</p>
+                 
+                 {user && !isClaimed && (
+                   <QuestProgressBar current={uq.progress} target={uq.target} isComplete={isComplete} />
+                 )}
+
+                 {user && isComplete && !isClaimed && (
+                   <button
+                     className="quest-claim-btn"
+                     onClick={() => handleDailyClaim(uq)}
+                     disabled={claiming === uq.id}
+                   >
+                     {claiming === uq.id ? t('common.loading') : t('quests.claim_reward')}
+                   </button>
+                 )}
+              </div>
+             );
+          })}
+
+          {/* 2. Bounty Quests from quests table */}
+          {(filter === 'all' || filter === 'bounty') && quests.filter(q => q.type === 'bounty').map((quest) => {
+            const isOwner = user?.id === quest.creator_id;
+            // Bounty logic remains same
             return (
               <div
                 key={quest.id}
-                className={`card quest-card${isAlreadyClaimed ? ' quest-card--completed' : ''}`}
-                onClick={() => quest.type === 'bounty' && setExpandedQuestId(expandedQuestId === quest.id ? null : quest.id)}
-                style={{ cursor: quest.type === 'bounty' ? 'pointer' : 'default' }}
+                className={`card quest-card${quest.status === 'completed' ? ' quest-card--completed' : ''}`}
+                onClick={() => setExpandedQuestId(expandedQuestId === quest.id ? null : quest.id)}
+                style={{ cursor: 'pointer' }}
               >
                 <div className="quest-card__header">
                   <div className="quest-card__title-group">
-                    <span className="quest-card__icon">{quest.type === 'daily' ? '🎯' : '💰'}</span>
-                    <h3 className="quest-card__title">{title}</h3>
+                    <span className="quest-card__icon">💰</span>
+                    <h3 className="quest-card__title">{quest.title}</h3>
                   </div>
                   <div className="quest-card__meta">
                     {statusBadge(quest.status)}
-                    <span className="quest-card__reward">
-                      {quest.reward_gold.toLocaleString()} G
-                    </span>
+                    <span className="quest-card__reward">{quest.reward_gold.toLocaleString()} G</span>
                   </div>
                 </div>
-                <p className="quest-card__desc">
-                  {description}
-                </p>
-
-                {/* ─── Progress Bar ─── */}
-                {user && !isAlreadyClaimed && (
-                  <QuestProgressBar
-                    current={Math.min(current, target)}
-                    target={target}
-                    isComplete={isComplete}
-                  />
-                )}
-
-                {/* ─── Claim Button ─── */}
-                {user && isComplete && !isAlreadyClaimed && (
-                  <button
-                    className="quest-claim-btn"
-                    onClick={() => handleClaim(quest)}
-                    disabled={claiming === quest.id}
-                  >
-                    {claiming === quest.id ? t('common.loading') : t('quests.claim_reward')}
-                  </button>
-                )}
-
+                <p className="quest-card__desc">{quest.description}</p>
                 <div className="quest-card__date">
-                  {new Date(quest.created_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {new Date(quest.created_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')}
                 </div>
 
-                {/* ─── Bounty Responses (Expanded) ─── */}
-                {quest.type === 'bounty' && expandedQuestId === quest.id && (
+                {/* Restore Claim Button for Bounty if needed (e.g. self-claim type) */}
+                {user && quest.status === 'open' && isOwner && (
+                   <button
+                     className="quest-claim-btn"
+                     onClick={(e) => { e.stopPropagation(); handleClaim(quest); }}
+                     disabled={claiming === quest.id}
+                     style={{ marginTop: 8 }}
+                   >
+                     {claiming === quest.id ? t('common.loading') : t('quests.claim_reward')}
+                   </button>
+                )}
+
+                {expandedQuestId === quest.id && (
                   <div onClick={(e) => e.stopPropagation()}>
-                    <BountySubmissions 
-                      questId={quest.id} 
-                      isOwner={user?.id === quest.creator_id}
-                      onUpdate={loadQuests}
-                    />
+                    <BountySubmissions questId={quest.id} isOwner={isOwner} onUpdate={loadQuests} />
                   </div>
                 )}
               </div>

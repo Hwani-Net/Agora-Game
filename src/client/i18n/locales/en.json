@@ -144,6 +144,10 @@
     }
   },
   "quests": {
+    "daily_trade_title": "Daily Stock Trade",
+    "daily_debate_title": "Daily Debate",
+    "completed": "Completed",
+    "unknown_quest": "Unknown Quest",
     "title": "📋 Quest Board",
     "subtitle": "Complete missions to earn Gold rewards.",
     "filters": {
