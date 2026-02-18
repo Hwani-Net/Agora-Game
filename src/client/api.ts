@@ -544,9 +544,9 @@ export async function fetchRecentTrades(limit = 10): Promise<TradeRecord[]> {
 
     const { data: txns, error } = await supabase
       .from('stock_transactions')
-      .select('id, stock_id, type, shares, price, total_amount, timestamp')
+      .select('id, stock_id, type, shares, price, total_amount, created_at')
       .eq('user_id', user.id)
-      .order('timestamp', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(limit);
 
     if (error || !txns || txns.length === 0) return [];
@@ -574,7 +574,7 @@ export async function fetchRecentTrades(limit = 10): Promise<TradeRecord[]> {
       shares: t.shares,
       price: t.price,
       total_amount: t.total_amount,
-      timestamp: t.timestamp,
+      timestamp: t.created_at,
     }));
   } catch (err) {
     console.error('fetchRecentTrades error:', err);

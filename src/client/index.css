@@ -260,6 +260,7 @@ a:hover {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   cursor: pointer;
+  min-height: 44px;
 }
 
 .navbar__brand-icon {
@@ -272,6 +273,12 @@ a:hover {
   list-style: none;
 }
 
+.navbar__menu {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .navbar__link {
   padding: 8px 16px;
   border-radius: var(--radius-md);
@@ -280,6 +287,9 @@ a:hover {
   font-size: 0.875rem;
   transition: var(--transition-fast);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 
 .navbar__link:hover,
@@ -296,6 +306,11 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.navbar__actions .btn,
+.navbar__actions .login-dropdown__item {
+  min-height: 44px;
 }
 
 .navbar__gold {
@@ -1005,7 +1020,18 @@ a:hover {
 
 .stagger-item {
   opacity: 0;
-  animation: fade-in 0.45s ease forwards;
+  transform: translateY(8px);
+  animation: fade-in 0.35s ease-out forwards;
+  animation-delay: var(--stagger-delay, 0s);
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stagger-item {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .skeleton {
@@ -1106,6 +1132,10 @@ a:hover {
   background: transparent;
   border: none;
   cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
 }
 
 .navbar__toggle span {
@@ -1132,7 +1162,7 @@ a:hover {
     display: flex;
   }
 
-  .navbar__nav {
+  .navbar__menu {
     position: absolute;
     top: 72px;
     left: 16px;
@@ -1142,7 +1172,8 @@ a:hover {
     border-radius: var(--radius-lg);
     padding: 12px;
     flex-direction: column;
-    gap: 6px;
+    align-items: stretch;
+    gap: 12px;
     opacity: 0;
     pointer-events: none;
     transform: translateY(-8px);
@@ -1150,14 +1181,45 @@ a:hover {
     z-index: 120;
   }
 
-  .navbar__nav--open {
+  .navbar__menu--open {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
   }
 
+  .navbar__nav {
+    flex-direction: column;
+    gap: 6px;
+  }
+
   .navbar__actions {
+    flex-direction: column;
+    align-items: stretch;
     gap: 8px;
+  }
+
+  .navbar__brand {
+    min-height: 44px;
+  }
+
+  .navbar__link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar__gold {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .navbar__actions .btn,
+  .navbar__actions .login-dropdown {
+    width: 100%;
+  }
+
+  .login-dropdown__item {
+    min-height: 44px;
   }
 
   .btn {
@@ -5099,3 +5161,204 @@ a:hover {
   margin-top: 20px;
   justify-content: flex-end;
 }
+
+/* ─── Profile Page Styles ─── */
+
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-card {
+  padding: 24px;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.profile-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.profile-stat-card {
+  padding: 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card-subtle, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.profile-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover, rgba(255, 255, 255, 0.08));
+  box-shadow: var(--shadow-sm);
+}
+
+.stat__value--gold {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.stat__value--highlight {
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+/* Portfolio & Trade Tables */
+
+.profile-portfolio-table,
+.trade-history-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.profile-portfolio-header,
+.trade-history-header,
+.gold-history-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr 1.2fr;
+  padding: 12px 16px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  min-width: 700px;
+}
+
+.trade-history-header {
+  grid-template-columns: 1.5fr 1fr 0.8fr 1fr 1fr 1.5fr;
+}
+
+.gold-history-header {
+  grid-template-columns: 1fr 1fr 2fr 1.5fr;
+}
+
+.profile-portfolio-row,
+.trade-history-row,
+.gold-history-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr 1.2fr;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  align-items: center;
+  min-width: 700px;
+  transition: var(--transition);
+}
+
+.trade-history-row {
+  grid-template-columns: 1.5fr 1fr 0.8fr 1fr 1fr 1.5fr;
+}
+
+.gold-history-row {
+  grid-template-columns: 1fr 1fr 2fr 1.5fr;
+}
+
+.profile-portfolio-row:hover,
+.trade-history-row:hover,
+.gold-history-row:hover {
+  background: var(--bg-card-hover);
+}
+
+.profile-portfolio-agent {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.profile-portfolio-total {
+  display: grid;
+  grid-template-columns: 5fr 1.2fr 1.2fr;
+  padding: 16px;
+  font-weight: 700;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  margin-top: 8px;
+  min-width: 700px;
+}
+
+.trade-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+.trade-tab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.trade-tab:hover {
+  color: var(--text-primary);
+}
+
+.trade-tab--active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.trade-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.trade-type-badge--buy {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.trade-type-badge--sell {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+}
+
+.trade-type-badge--earn {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.trade-type-badge--spend {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.btn--load-more {
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px;
+}
+
+.text-profit { color: #22c55e; }
+.text-loss { color: #ef4444; }
+.text-bold { font-weight: 700; }
+.text-sm-secondary { font-size: 0.8rem; color: var(--text-muted); }
+.text-sm-muted { font-size: 0.85rem; color: var(--text-muted); }

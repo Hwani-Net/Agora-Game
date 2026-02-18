@@ -57,6 +57,7 @@ function LangToggle() {
 function LoginActions() {
   const { t } = useTranslation();
   const { user, login, loginWithGoogle, logout, loading } = useAuthContext();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   if (loading) {
@@ -68,7 +69,7 @@ function LoginActions() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <button
           className="btn btn--ghost btn--sm"
-          onClick={() => window.location.href = '/profile'}
+          onClick={() => navigate('/profile')}
           style={{ textDecoration: 'none' }}
         >
           👤 {user.name}
@@ -141,41 +142,48 @@ function AppContent() {
           className="navbar__toggle"
           onClick={() => setMenuOpen((prev) => !prev)}
           aria-label={menuOpen ? t('nav.menu_close') : t('nav.menu_open')}
+          aria-expanded={menuOpen}
+          aria-controls="primary-nav"
         >
           <span />
           <span />
           <span />
         </button>
-        <ul className={`navbar__nav ${menuOpen ? 'navbar__nav--open' : ''}`}>
-          {[
-            { key: 'home', label: t('nav.home'), to: '/' },
-            { key: 'agents', label: t('nav.agents'), to: '/agents' },
-            { key: 'arena', label: t('nav.arena'), to: '/arena' },
-            { key: 'market', label: t('nav.market'), to: '/market' },
-            { key: 'quests', label: t('nav.quests'), to: '/quests' },
-            { key: 'news', label: `📰 ${t('nav.news')}`, to: '/news' },
-          ].map((item) => (
-            <li key={item.key}>
-              <NavLink
-                to={item.to}
-                end={item.to === '/'}
-                className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
-              >
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-        <div className="navbar__actions">
-          <LangToggle />
-          <ThemeToggle />
-          {user && (
-            <div className="navbar__gold">
-              <span>💰</span>
-              <span>{user.gold_balance.toLocaleString()} {t('nav.gold')}</span>
-            </div>
-          )}
-          <LoginActions />
+        <div
+          id="primary-nav"
+          className={`navbar__menu ${menuOpen ? 'navbar__menu--open' : ''}`}
+        >
+          <ul className="navbar__nav">
+            {[
+              { key: 'home', label: t('nav.home'), to: '/' },
+              { key: 'agents', label: t('nav.agents'), to: '/agents' },
+              { key: 'arena', label: t('nav.arena'), to: '/arena' },
+              { key: 'market', label: t('nav.market'), to: '/market' },
+              { key: 'quests', label: t('nav.quests'), to: '/quests' },
+              { key: 'news', label: `📰 ${t('nav.news')}`, to: '/news' },
+            ].map((item) => (
+              <li key={item.key}>
+                <NavLink
+                  to={item.to}
+                  end={item.to === '/'}
+                  className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+                >
+                  {item.label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+          <div className="navbar__actions">
+            <LangToggle />
+            <ThemeToggle />
+            {user && (
+              <div className="navbar__gold">
+                <span>💰</span>
+                <span>{user.gold_balance.toLocaleString()} {t('nav.gold')}</span>
+              </div>
+            )}
+            <LoginActions />
+          </div>
         </div>
       </nav>
 

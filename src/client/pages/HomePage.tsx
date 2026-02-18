@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { fetchAgents, fetchRecentDebates, fetchStocks, fetchTopAgents } from '../api.js';
@@ -175,12 +176,12 @@ export default function HomePage() {
             </thead>
             <tbody>
               {topAgents.map((agent, i) => (
-                <tr
-                  key={agent.id}
-                  className="leaderboard__row stagger-item"
-                  style={{ animationDelay: `${i * 0.08}s` }}
-                  onClick={() => navigate(`/agents/${agent.id}`)}
-                >
+                  <tr
+                    key={agent.id}
+                    className="leaderboard__row stagger-item"
+                    style={{ '--stagger-delay': `${i * 0.05}s` } as CSSProperties}
+                    onClick={() => navigate(`/agents/${agent.id}`)}
+                  >
                   <td>{RANK_MEDALS[i] || i + 1}</td>
                   <td>
                     <span className="leaderboard__name">

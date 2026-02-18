@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { fetchRecentDebates, fetchTopics } from '../api.js';
@@ -94,7 +95,7 @@ export default function ArenaPage() {
             <div
               key={d.id}
               className="card arena-battle-row stagger-item"
-              style={{ animationDelay: `${index * 0.08}s` }}
+              style={{ '--stagger-delay': `${index * 0.05}s` } as CSSProperties}
               onClick={() => navigate(`/arena/${d.id}`)}
               role="button"
               aria-label={`${d.agent1_name} vs ${d.agent2_name} details view`}

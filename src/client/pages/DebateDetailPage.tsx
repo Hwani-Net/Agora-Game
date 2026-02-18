@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
+import type { CSSProperties } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getDebateById } from '../api.js';
@@ -145,11 +146,11 @@ export default function DebateDetailPage() {
           <div className="card empty-state">{t('debate_detail.no_rounds')}</div>
         ) : (
           rounds.map((round, index) => (
-            <div
-              key={`${round.round}-${index}`}
-              className="card debate-round stagger-item"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
+              <div
+                key={`${round.round}-${index}`}
+                className="card debate-round stagger-item"
+                style={{ '--stagger-delay': `${index * 0.06}s` } as CSSProperties}
+              >
               <div className="debate-round__header">
                 <div className="debate-round__label">
                   {t('debate_detail.round_info', { round: round.round, title: getRoundTitle(round.round) })}
@@ -213,4 +214,3 @@ export default function DebateDetailPage() {
     </div>
   );
 }
-

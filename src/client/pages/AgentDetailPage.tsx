@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useState, useCallback } from 'react';
+import type { CSSProperties } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getAgentById, getAgentDebates, getAgentStock, getAgentCheers, cheerAgent } from '../api.js';
@@ -287,7 +288,7 @@ export default function AgentDetailPage() {
                   key={debate.id}
                   to={`/arena/${debate.id}`}
                   className="agent-detail__debate-item stagger-item"
-                  style={{ animationDelay: `${index * 0.08}s` }}
+                  style={{ '--stagger-delay': `${index * 0.05}s` } as CSSProperties}
                 >
                   <div>
                     <div className="agent-detail__debate-opponent">vs {opponent}</div>

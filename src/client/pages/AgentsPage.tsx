@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import type { CSSProperties } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { fetchAgents } from '../api.js';
@@ -182,7 +183,7 @@ export default function AgentsPage() {
             <div
               key={agent.id}
               className="card card--agent stagger-item"
-              style={{ animationDelay: `${index * 0.08}s` }}
+              style={{ '--stagger-delay': `${index * 0.06}s` } as CSSProperties}
               onClick={() => navigate(`/agents/${agent.id}`)}
               role="button"
               aria-label={`${agent.name} profile view`}
