@@ -28,7 +28,7 @@ jobs:
         run: |
           response=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
-            "${{ secrets.SUPABASE_URL }}/functions/v1/generate-daily-quests" \
+            "${{ secrets.VITE_SUPABASE_URL }}/functions/v1/generate-daily-quests" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{}')
@@ -52,7 +52,7 @@ jobs:
         run: |
           response=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
-            "${{ secrets.SUPABASE_URL }}/functions/v1/generate-daily-news" \
+            "${{ secrets.VITE_SUPABASE_URL }}/functions/v1/generate-daily-news" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{}')
@@ -73,7 +73,7 @@ jobs:
         run: |
           response=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
-            "${{ secrets.SUPABASE_URL }}/functions/v1/stock-fluctuation" \
+            "${{ secrets.VITE_SUPABASE_URL }}/functions/v1/stock-fluctuation" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{}')
