@@ -1,17 +1,27 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthContext } from '../AuthContext.js';
 import {
   fetchPortfolio,
   fetchRecentTrades,
   fetchGoldHistory,
+  fetchUsageStats,
+  fetchPortfolioHistory,
+  capturePortfolioSnapshot,
   type PortfolioItem,
   type TradeRecord,
   type GoldTransaction,
 } from '../api.js';
+import PortfolioChart from '../components/PortfolioChart.js';
 
 type TradeTab = 'stock' | 'gold';
+
+interface UsageStats {
+  debates_today: number;
+  trades_today: number;
+  agents_count?: number;
+}
 
 export default function ProfilePage() {
   const { t, i18n } = useTranslation();
@@ -20,10 +30,12 @@ export default function ProfilePage() {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [trades, setTrades] = useState<TradeRecord[]>([]);
   const [goldTxns, setGoldTxns] = useState<GoldTransaction[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tradeTab, setTradeTab] = useState<TradeTab>('stock');
   const [tradeLimit, setTradeLimit] = useState(10);
   const [goldLimit, setGoldLimit] = useState(10);
+  const [usage, setUsage] = useState<UsageStats | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -34,11 +46,16 @@ export default function ProfilePage() {
       fetchPortfolio(),
       fetchRecentTrades(tradeLimit),
       fetchGoldHistory(goldLimit),
+      fetchUsageStats(),
+      fetchPortfolioHistory(),
+      capturePortfolioSnapshot(), // Trigger snapshot (fire & forget)
     ])
-      .then(([p, tr, gl]) => {
+      .then(([p, tr, gl, us, ph]) => {
         setPortfolio(p);
         setTrades(tr);
         setGoldTxns(gl);
+        setUsage(us as UsageStats);
+        setHistory(ph as any[]);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -135,6 +152,64 @@ export default function ProfilePage() {
         </div>
       </section>
 
+      {/* ─── Portfolio History Chart (V2 Migration Feature) ─── */}
+      <section className="card profile-card">
+        <h3>📈 {t('profile.asset_growth')}</h3>
+        <div className="chart-container mt-16">
+          <PortfolioChart data={history} height={250} />
+        </div>
+      </section>
+
+      {/* ─── Usage Limits (V2 Migration Feature) ─── */}
+      <section className="card profile-card usage-limits-card">
+        <div className="section-header">
+          <h3 className="section-header__title">{t('profile.usage_limits')}</h3>
+          {!user.isPremium && (
+            <button className="btn btn--primary btn--xs" onClick={() => alert('Premium service coming soon!')}>
+              💎 {t('profile.upgrade_to_premium')}
+            </button>
+          )}
+        </div>
+        <div className="usage-grid mt-16">
+          <div className="usage-item">
+            <span className="usage-item__label">{t('profile.usage_debate')}</span>
+            <div className="usage-bar-container">
+              <div 
+                className={`usage-bar ${user.isPremium ? 'usage-bar--unlimited' : (usage?.debates_today ?? 0) >= 10 ? 'usage-bar--full' : ''}`}
+                style={{ width: user.isPremium ? '100%' : `${Math.min(((usage?.debates_today ?? 0) / 10) * 100, 100)}%` }}
+              />
+            </div>
+            <span className="usage-item__value">
+              {user.isPremium ? t('profile.usage_unlimited') : `${usage?.debates_today ?? 0} / 10`}
+            </span>
+          </div>
+          <div className="usage-item">
+            <span className="usage-item__label">{t('profile.usage_trade')}</span>
+            <div className="usage-bar-container">
+              <div 
+                className={`usage-bar ${user.isPremium ? 'usage-bar--unlimited' : (usage?.trades_today ?? 0) >= 20 ? 'usage-bar--full' : ''}`}
+                style={{ width: user.isPremium ? '100%' : `${Math.min(((usage?.trades_today ?? 0) / 20) * 100, 100)}%` }}
+              />
+            </div>
+            <span className="usage-item__value">
+              {user.isPremium ? t('profile.usage_unlimited') : `${usage?.trades_today ?? 0} / 20`}
+            </span>
+          </div>
+          <div className="usage-item">
+            <span className="usage-item__label">{t('profile.usage_agent')}</span>
+            <div className="usage-bar-container">
+              <div 
+                className={`usage-bar ${user.isPremium ? 'usage-bar--unlimited' : (user.agents_count ?? 0) >= 3 ? 'usage-bar--full' : ''}`}
+                style={{ width: user.isPremium ? '100%' : `${Math.min(((user.agents_count ?? 0) / 3) * 100, 100)}%` }}
+              />
+            </div>
+            <span className="usage-item__value">
+              {user.isPremium ? t('profile.usage_unlimited') : `${user.agents_count ?? 0} / 3`}
+            </span>
+          </div>
+        </div>
+      </section>
+
       {/* ─── My Portfolio ─── */}
       <section className="card profile-card">
         <div className="section-header mb-16">
@@ -161,7 +236,7 @@ export default function ProfilePage() {
             </div>
             {portfolio.map((item) => (
               <div key={item.stock_id} className="profile-portfolio-row">
-                <span className="profile-portfolio-agent">{item.agent_name}</span>
+                <Link to={`/agents/${item.agent_id}`} className="profile-portfolio-agent agent-link">{item.agent_name}</Link>
                 <span>{item.shares_owned}</span>
                 <span>{fmt(Math.round(item.avg_buy_price))} G</span>
                 <span>{fmt(Math.round(item.current_price))} G</span>

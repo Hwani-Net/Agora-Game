@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import type { CSSProperties } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { fetchRecentDebates, fetchTopics } from '../api.js';
 
 interface Debate {
   id: string;
+  agent1_id?: string;
+  agent2_id?: string;
   agent1_name: string;
   agent2_name: string;
   topic: string;
@@ -101,9 +103,9 @@ export default function ArenaPage() {
               aria-label={`${d.agent1_name} vs ${d.agent2_name} details view`}
             >
               <div className="arena-battle__agents">
-                <div className="arena-battle__name">{d.agent1_name}</div>
+                <Link to={d.agent1_id ? `/agents/${d.agent1_id}` : '#'} className="arena-battle__name agent-link" onClick={e => e.stopPropagation()}>{d.agent1_name}</Link>
                 <span className="arena-battle__vs">vs</span>
-                <div className="arena-battle__name">{d.agent2_name}</div>
+                <Link to={d.agent2_id ? `/agents/${d.agent2_id}` : '#'} className="arena-battle__name agent-link" onClick={e => e.stopPropagation()}>{d.agent2_name}</Link>
               </div>
               <div className="arena-battle__topic">
                 {d.topic?.substring(0, 40)}{d.topic?.length > 40 ? '...' : ''}

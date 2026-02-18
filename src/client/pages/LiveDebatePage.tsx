@@ -1,42 +1,41 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { streamDebate, type DebateEvent } from '../api.js';
+import { streamDebate, type DebateEvent, type DebateResult } from '../api.js';
 import { useToast } from '../ToastContext.js';
 import { getFactionEmoji } from '../utils/factions.js';
+import { DebateFlowChart } from '../components/DebateFlowChart.js';
 
-// ─── Types ───
-interface AgentInfo {
-  id: string;
-  name: string;
-  faction: string;
-  elo: number;
-  tier: string;
-}
-
-interface ArgumentData {
+type ArgumentData = {
   round: number;
   agent: 'agent1' | 'agent2';
-  name: string;
   text: string;
+  name: string;
+  timestamp: string;
 }
 
-interface DebateResult {
-  debateId: string;
-  winner: { id: string; name: string; eloChange: number; newElo: number };
-  loser: { id: string; name: string; eloChange: number; newElo: number };
-  scores: {
-    agent1: { logic: number; evidence: number; persuasion: number };
-    agent2: { logic: number; evidence: number; persuasion: number };
-  };
-  reasoning: string;
+type AgentInfo = {
+  name: string;
+  faction: string;
+  tier: string;
+  elo: number;
 }
 
-type Phase = 'connecting' | 'matched' | 'debating' | 'judging' | 'result' | 'error';
+type Phase = 'connecting' | 'matched' | 'intro' | 'debating' | 'judging' | 'result' | 'error';
 
+interface RoundScore {
+  round: number;
+  agent1: number;
+  agent2: number;
+  reason: string;
+}
 
-
-// ─── Typewriter Hook ───
+function getRoundLabel(round: number) {
+  if (round === 1) return 'Opening Statements';
+  if (round === 2) return 'Rebuttals';
+  if (round === 3) return 'Closing Arguments';
+  return `Round ${round}`;
+}
 function useTypewriter(text: string, speed = 18) {
   const [displayed, setDisplayed] = useState('');
   const [done, setDone] = useState(false);
@@ -110,16 +109,14 @@ export default function LiveDebatePage() {
   const [currentRound, setCurrentRound] = useState(0);
   const [speakingAgent, setSpeakingAgent] = useState<string | null>(null);
   const [arguments_, setArguments] = useState<ArgumentData[]>([]);
+  const [roundScores, setRoundScores] = useState<RoundScore[]>([]); // New state for chart
   const [result, setResult] = useState<DebateResult | null>(null);
   const [debateId, setDebateId] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef<AbortController | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const getRoundLabel = useCallback((round: number) => {
-    if (round < 1) return '';
-    return t(`live_debate.rounds.p${round}`);
-  }, [t]);
+  // ... (existing getRoundLabel)
 
   const handleEvent = useCallback((event: DebateEvent) => {
     switch (event.type) {
@@ -129,11 +126,25 @@ export default function LiveDebatePage() {
         setAgent1(event.data.agent1);
         setAgent2(event.data.agent2);
         setDebateId(event.data.debateId);
+        // Initialize chart with 50:50 start
+        setRoundScores([{ round: 0, agent1: 50, agent2: 50, reason: '토론 시작' }]);
         setTimeout(() => setPhase('debating'), 1200);
         break;
 
       case 'round_start':
         setCurrentRound(event.data.round);
+        break;
+
+      case 'score_update': // New event handler
+        setRoundScores(prev => [
+          ...prev,
+          {
+            round: event.data.round,
+            agent1: event.data.scores.agent1,
+            agent2: event.data.scores.agent2,
+            reason: event.data.reason,
+          }
+        ]);
         break;
 
       case 'speaking':
@@ -173,40 +184,40 @@ export default function LiveDebatePage() {
     }
   }, [pushToast, t]);
 
+  // Start Streaming
   useEffect(() => {
-    const controller = new AbortController();
-    abortRef.current = controller;
+    // Cleanup previous stream
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
 
-    streamDebate(handleEvent, controller.signal);
+    const ac = new AbortController();
+    abortRef.current = ac;
+
+    setPhase('connecting');
+    setArguments([]);
+    setRoundScores([]);
+    setSpeakingAgent(null);
+    setCurrentRound(0);
+
+    streamDebate(handleEvent, ac.signal);
 
     return () => {
-      controller.abort();
+      ac.abort();
     };
   }, [handleEvent]);
 
+  // Auto-scroll to bottom
   useEffect(() => {
     if (contentRef.current) {
       contentRef.current.scrollTop = contentRef.current.scrollHeight;
     }
-  }, [arguments_]);
-
-  // ─── Render: Connecting ───
-  if (phase === 'connecting') {
-    return (
-      <div className="live-page">
-        <div className="live-center-msg animate-pulse-slow">
-          <div className="live-swords">⚔️</div>
-          <h2>{t('live_debate.matching.title')}</h2>
-          <p>{t('live_debate.matching.subtitle')}</p>
-          <div className="spinner spinner--md" />
-        </div>
-      </div>
-    );
-  }
+  }, [arguments_, speakingAgent, phase]);
 
   // ─── Render: Matched ───
   if (phase === 'matched' && agent1 && agent2) {
-    return (
+     // ... (existing matched render)
+     return (
       <div className="live-page">
         <div className="live-matchup animate-scale-in">
           <div className="live-matchup__agent">
@@ -226,9 +237,10 @@ export default function LiveDebatePage() {
     );
   }
 
-  // ─── Render: Error ───
+  // ... (existing error render)
   if (phase === 'error') {
-    return (
+     // ... (existing error return)
+     return (
       <div className="live-page">
         <div className="live-center-msg">
           <div className="text-icon-xl">❌</div>
@@ -263,6 +275,17 @@ export default function LiveDebatePage() {
               ? t('live_debate.status.result')
               : `${t('live_debate.rounds.round', { current: currentRound, total: 3 })} · ${getRoundLabel(currentRound)}`}
         </div>
+      </div>
+
+      {/* 📊 NEW: Debate Flow Chart */}
+      <div className="live-chart-container">
+        {agent1 && agent2 && (
+          <DebateFlowChart 
+            roundScores={roundScores} 
+            agent1Name={agent1.name} 
+            agent2Name={agent2.name} 
+          />
+        )}
       </div>
 
       {/* Progress Bar */}

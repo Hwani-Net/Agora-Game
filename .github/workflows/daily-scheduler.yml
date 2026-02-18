@@ -1,0 +1,85 @@
+name: Daily AI Agora Scheduler
+
+on:
+  schedule:
+    # Daily Quests — 00:00 UTC (09:00 KST)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Which job to run manually'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - quests
+          - news
+          - stocks
+
+jobs:
+  # ─── 1. Generate Daily Quests (00:00 UTC) ───
+  generate-daily-quests:
+    name: 🎯 Generate Daily Quests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.job == 'all' || github.event.inputs.job == 'quests'
+    steps:
+      - name: Invoke Edge Function
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/generate-daily-quests" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "HTTP Status: $response"
+          if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
+            echo "❌ generate-daily-quests failed with status $response"
+            exit 1
+          fi
+          echo "✅ Daily quests generated successfully"
+
+  # ─── 2. Generate Daily News (01:00 UTC) ───
+  generate-daily-news:
+    name: 📰 Generate Daily News
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.job == 'all' || github.event.inputs.job == 'news'
+    steps:
+      - name: Wait 1 hour after quests (schedule only)
+        if: github.event_name == 'schedule'
+        run: sleep 3600
+      - name: Invoke Edge Function
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/generate-daily-news" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "HTTP Status: $response"
+          if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
+            echo "❌ generate-daily-news failed with status $response"
+            exit 1
+          fi
+          echo "✅ Daily news generated successfully"
+
+  # ─── 3. Stock Fluctuation (every 30 min via separate workflow) ───
+  stock-fluctuation:
+    name: 📈 Stock Market Fluctuation
+    runs-on: ubuntu-latest
+    if: github.event.inputs.job == 'all' || github.event.inputs.job == 'stocks'
+    steps:
+      - name: Invoke Edge Function
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            "${{ secrets.SUPABASE_URL }}/functions/v1/stock-fluctuation" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "HTTP Status: $response"
+          if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
+            echo "❌ stock-fluctuation failed with status $response"
+            exit 1
+          fi
+          echo "✅ Stock fluctuation applied successfully"

@@ -1,11 +1,16 @@
-﻿import { useEffect, useMemo, useState, useCallback } from 'react';
-import type { CSSProperties } from 'react';
-import { useParams, Link } from 'react-router-dom';
+﻿import { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getAgentById, getAgentDebates, getAgentStock, getAgentCheers, cheerAgent } from '../api.js';
-import { getFactionLabel, getFactionEmoji, getFactionDescription } from '../utils/factions.js';
+import { 
+  getAgentById, getAgentDebates, getAgentStock, getAgentCheers, cheerAgent,
+  getProposals, createProposal, voteProposal, type Proposal,
+  fetchStockHistory
+} from '../api.js';
+import StockHistoryChart from '../components/StockHistoryChart.js';
+import { getFactionLabel, getFactionEmoji } from '../utils/factions.js';
 import { useToast } from '../ToastContext.js';
 import { useAuthContext } from '../AuthContext.js';
+import ShareButton from '../components/ShareButton.js';
 
 type Agent = {
   id: string;
@@ -35,290 +40,324 @@ type Debate = {
   completed_at?: string | null;
 };
 
-type Stock = {
-  current_price: number;
-  market_cap: number;
-  price_change_24h?: number | null;
-};
-
 export default function AgentDetailPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { agentId } = useParams();
   const { pushToast } = useToast();
+  const { user } = useAuthContext();
+  const navigate = useNavigate();
+  
   const [agent, setAgent] = useState<Agent | null>(null);
   const [debates, setDebates] = useState<Debate[]>([]);
-  const [stock, setStock] = useState<Stock | null>(null);
+  const [stock, setStock] = useState<any | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [cheers, setCheers] = useState({ count: 0, recent: [] as any[] });
   const [loading, setLoading] = useState(true);
-  const { user } = useAuthContext();
-  const [cheerCount, setCheerCount] = useState(0);
-  const [cheering, setCheering] = useState(false);
+  const [error, setError] = useState('');
 
-  const formatNum = useCallback((value?: number | null) => {
-    if (value == null || Number.isNaN(value)) return '-';
-    return value.toLocaleString(i18n.language === 'ko' ? 'ko-KR' : 'en-US');
-  }, [i18n.language]);
+  const [activeTab, setActiveTab] = useState<'info' | 'debates' | 'shareholders'>('info');
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [newTopic, setNewTopic] = useState('');
 
+  // Fetch Agent Data
   useEffect(() => {
     if (!agentId) return;
-    let active = true;
     setLoading(true);
+    Promise.all([
+      getAgentById(agentId),
+      getAgentDebates(agentId),
+      getAgentStock(agentId),
+      getAgentCheers(agentId)
+    ]).then(([agentData, debatesData, stockData, cheersData]) => {
+      setAgent(agentData);
+      setDebates(debatesData);
+      setStock(stockData);
+      setCheers(cheersData);
+      
+      if (stockData?.id) {
+        fetchStockHistory(stockData.id).then(setHistory).catch(console.error);
+      }
+      
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setError(t('common.error'));
+      setLoading(false);
+    });
+  }, [agentId, t]);
 
-    getAgentById(agentId)
-      .then((agentData) => {
-        if (!active) return;
-        setAgent(agentData as Agent);
-      })
-      .catch((err) => {
-        if (!active) return;
-        pushToast(err instanceof Error ? err.message : t('agent_detail.not_found'), 'error');
-        setAgent(null);
-      })
-      .finally(() => {
-        if (!active) return;
-        setLoading(false);
-      });
+  // Fetch Proposals & Check Shareholder Status
+  useEffect(() => {
+    if (!agentId || !user) return;
+    
+    // Check shareholder status via stock ownership
+    // Optimization: We can check `stock` state if we have it? 
+    // Actually getAgentStock returns public stock info, not user ownership.
+    // So we need to rely on API error or separate check. 
+    // Let's just fetch proposals and let the API handle permission checks for now.
+    
+    getProposals(agentId)
+      .then(setProposals)
+      .catch(console.error);
 
-    getAgentDebates(agentId)
-      .then((debateData) => {
-        if (active) setDebates((debateData || []) as Debate[]);
-      })
-      .catch(() => {
-        if (active) setDebates([]);
-      });
+  }, [agentId, user]);
 
-    getAgentStock(agentId)
-      .then((stockData) => {
-        if (active) setStock((stockData || null) as Stock | null);
-      })
-      .catch(() => {
-        if (active) setStock(null);
-      });
-
-    getAgentCheers(agentId)
-      .then((result) => {
-        if (active) setCheerCount(result.count);
-      })
-      .catch(() => {});
-
-    return () => {
-      active = false;
-    };
-  }, [agentId, pushToast, t]);
-
-  const stats = useMemo(() => {
-    const wins = agent?.wins ?? 0;
-    const losses = agent?.losses ?? 0;
-    const draws = agent?.draws ?? 0;
-    const total = agent?.total_debates ?? wins + losses + draws;
-    const winRate = total > 0 ? (wins / total) * 100 : 0;
-    return { wins, losses, draws, total, winRate };
-  }, [agent]);
-
-
-  function getResultLabel(res: 'win' | 'loss' | 'draw') {
-    return t(`agent_detail.debates.result.${res}`);
-  }
-
-  const handleCheer = useCallback(async () => {
-    if (!user || !agentId || cheering) return;
-    setCheering(true);
+  const handleCreateProposal = async () => {
+    if (!newTopic.trim() || !agentId) return;
     try {
-      await cheerAgent(agentId, user.id);
-      setCheerCount((prev) => prev + 1);
-      pushToast(t('agent_detail.cheer_sent'), 'success');
-    } catch {
-      pushToast(t('common.error'), 'error');
-    } finally {
-      setCheering(false);
+      await createProposal(agentId, newTopic);
+      setNewTopic('');
+      pushToast(t('agent_detail.proposal.created'), 'success');
+      // Refresh proposals
+      getProposals(agentId).then(setProposals);
+    } catch (err: any) {
+      if (err.message === 'MUST_BE_SHAREHOLDER') {
+        pushToast(t('agent_detail.proposal.error.shareholder_only'), 'error');
+      } else {
+        pushToast(t('common.error'), 'error');
+      }
     }
-  }, [user, agentId, cheering, pushToast, t]);
+  };
+
+  const handleVote = async (proposalId: string) => {
+    if (!agentId) return;
+    try {
+      await voteProposal(proposalId, agentId);
+      pushToast(t('agent_detail.proposal.voted'), 'success');
+      // Refresh
+      getProposals(agentId).then(setProposals);
+    } catch (err: any) {
+      if (err.message === 'NO_SHARES_TO_VOTE') {
+        pushToast(t('agent_detail.proposal.error.no_shares'), 'error');
+      } else {
+        pushToast(t('common.error'), 'error');
+      }
+    }
+  };
+
+  // ... (existing loading/error states)
 
   if (loading) {
-    return (
-      <div className="agent-detail">
-        <div className="card skeleton skeleton--h220 mb-24" />
-        <div className="grid grid--2">
-          <div className="card skeleton skeleton--h160" />
-          <div className="card skeleton skeleton--h160" />
-        </div>
-        <div className="card skeleton skeleton--h240 mt-24" />
-      </div>
-    );
+    return <div className="spinner-container"><div className="spinner" /></div>;
   }
 
-  if (!agent) {
-    return (
-      <div className="empty-state">
-        <div className="empty-state__icon">🤖</div>
-        <div className="empty-state__title">{t('agent_detail.not_found')}</div>
-        <p>{t('agent_detail.not_found_desc')}</p>
-      </div>
-    );
+  if (error) {
+    return <div className="error-container">{error}</div>;
   }
 
   return (
     <div className="agent-detail animate-fade-in">
+      {/* Hero Section */}
       <section className="card agent-detail__hero">
-        <div className="agent-detail__header">
-          <div>
-            <div className="agent-detail__badges">
-              <div className={`tier-badge tier-badge--${agent.tier.toLowerCase()}`}>{agent.tier}</div>
-              <div className={`faction-badge faction-badge--${agent.faction.toLowerCase()}`}>
-                {getFactionEmoji(agent.faction)} {getFactionLabel(agent.faction, t)}
+         <div className="hero-content">
+             <div className="agent-avatar">{getFactionEmoji(agent?.faction || '')}</div>
+             <div className="agent-info">
+               <h1>{agent?.name}</h1>
+               <span className={`badge badge--${agent?.faction}`}>{getFactionLabel(agent?.faction || '', t)}</span>
+               <p className="agent-persona">"{agent?.persona}"</p>
+             </div>
+             <div className="agent-actions">
+               <button 
+                 className="btn btn--primary"
+                 onClick={() => cheerAgent(agentId!, 'user_id', 'Cheer!').then(() => getAgentCheers(agentId!).then(setCheers))}
+               >
+                 🎉 Cheer ({cheers.count})
+               </button>
+                <ShareButton 
+                  title={t('agent_detail.share.title', { name: agent?.name })}
+                  description={t('agent_detail.share.description', { name: agent?.name })}
+                />
               </div>
-            </div>
-            <h2>{agent.name}</h2>
-            <p className="agent-detail__meta">
-              ELO {formatNum(agent.elo_score)}
-            </p>
           </div>
-          <Link to="/agents" className="btn btn--ghost btn--sm">
-            ← {t('nav.agents')}
-          </Link>
-        </div>
-        <p className="agent-detail__persona">“{agent.persona}”</p>
-        <div className="agent-detail__faction-desc">
-          <span className="stat__label">{t('factions.faction_label')}</span>
-          <p>{getFactionDescription(agent.faction, t)}</p>
-        </div>
-        <div className="agent-detail__philosophy">
-          <span>{t('agent_detail.philosophy')}</span>
-          <p>{agent.philosophy || t('agent_detail.no_philosophy')}</p>
-        </div>
-        <div className="agent-detail__cheer">
-          <button
-            className="cheer-btn"
-            onClick={handleCheer}
-            disabled={cheering || !user}
-            title={user ? t('agent_detail.cheer_action') : t('agent_detail.cheer_login')}
-          >
-            <span className="cheer-btn__emoji">📣</span>
-            <span className="cheer-btn__count">{cheerCount.toLocaleString()}</span>
-          </button>
-          <span className="cheer-btn__label">{t('agent_detail.cheer_label')}</span>
-        </div>
       </section>
 
-      <section className="grid grid--2 agent-detail__stats">
-        <div className="card">
-          <h3>📊 {t('agent_detail.stats')}</h3>
-          <div className="agent-detail__record">
-            <div>
-              <div className="stat__label">{t('agents.stats.win_loss')}</div>
-              <div className="stat__value">
-                {t('agent_detail.record.format', {
-                  wins: stats.wins,
-                  losses: stats.losses,
-                  draws: stats.draws,
-                })}
-              </div>
-            </div>
-            <div>
-              <div className="stat__label">{t('agent_detail.record.total')}</div>
-              <div className="stat__value">
-                {t('agent_detail.record.count', { count: stats.total })}
-              </div>
-            </div>
-            <div>
-              <div className="stat__label">{t('agent_detail.record.win_rate')}</div>
-              <div className="stat__value">
-                {stats.winRate.toFixed(1)}%
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Tabs */}
+      <div className="tab-nav">
+        <button 
+          className={`tab-nav__item ${activeTab === 'info' ? 'active' : ''}`}
+          onClick={() => setActiveTab('info')}
+        >
+          ℹ️ {t('agent_detail.tabs.info')}
+        </button>
+        <button 
+          className={`tab-nav__item ${activeTab === 'debates' ? 'active' : ''}`}
+          onClick={() => setActiveTab('debates')}
+        >
+          ⚔️ {t('agent_detail.tabs.debates')}
+        </button>
+        <button 
+          className={`tab-nav__item ${activeTab === 'shareholders' ? 'active' : ''}`}
+          onClick={() => setActiveTab('shareholders')}
+        >
+          🏛️ {t('agent_detail.tabs.shareholders')}
+        </button>
+      </div>
 
-        <div className="card">
-          <h3>{t('agent_detail.stock.title')}</h3>
-          {stock ? (
-            <div className="agent-detail__stock">
-              <div>
-                <div className="stat__label">{t('agent_detail.stock.price')}</div>
-                <div className="stat__value">G {formatNum(stock.current_price)}</div>
+      {/* Tab Content: Info */}
+      {activeTab === 'info' && agent && (
+        <section className="grid grid--2 agent-detail__stats animate-fade-in">
+          <div className="card">
+            <h3>📊 {t('agent_detail.stats.title')}</h3>
+            <div className="stat-grid">
+              <div className="stat-item">
+                <label>ELO</label>
+                <div className="stat-value">{agent.elo_score}</div>
               </div>
-              <div>
-                <div className="stat__label">{t('agent_detail.stock.market_cap')}</div>
-                <div className="stat__value">G {formatNum(stock.market_cap)}</div>
+              <div className="stat-item">
+                <label>Tier</label>
+                <div className="stat-value">{agent.tier}</div>
               </div>
-              <div>
-                <div className="stat__label">{t('agent_detail.stock.change_24h')}</div>
-                <div
-                  className={`stat__change ${stock.price_change_24h && stock.price_change_24h >= 0 ? 'stat__change--up' : 'stat__change--down'}`}
-                >
-                  {stock.price_change_24h != null ? `${stock.price_change_24h.toFixed(2)}%` : '-'}
+              <div className="stat-item">
+                <label>Win Rate</label>
+                <div className="stat-value">
+                  {agent.total_debates ? Math.round((agent.wins / agent.total_debates) * 100) : 0}%
                 </div>
               </div>
+              <div className="stat-item">
+                <label>Record</label>
+                <div className="stat-value">{agent.wins}W - {agent.losses}L - {agent.draws}D</div>
+              </div>
             </div>
-          ) : (
-            <p className="agent-detail__empty">{t('agent_detail.stock.no_stock')}</p>
-          )}
-        </div>
-      </section>
-
-      <section className="card agent-detail__debates">
-        <div className="section-header">
-          <div>
-            <h3 className="section-header__title">{t('agent_detail.debates.title')}</h3>
-            <p className="section-header__subtitle">{t('agent_detail.debates.subtitle')}</p>
           </div>
-        </div>
-        {debates.length === 0 ? (
-          <div className="empty-state">
-            {t('agent_detail.debates.no_debates')}
-          </div>
-        ) : (
-          <div className="agent-detail__debate-list">
-            {debates.map((debate, index) => {
-              const isAgent1 = debate.agent1_id === agent.id;
-              const opponent = isAgent1 ? debate.agent2_name : debate.agent1_name;
-              const resultKey = debate.winner_id
-                ? debate.winner_id === agent.id
-                  ? 'win'
-                  : 'loss'
-                : 'draw';
-              const resultLabel = getResultLabel(resultKey);
-              const eloDelta = debate.winner_id
-                ? debate.winner_id === agent.id
-                  ? debate.elo_change_winner ?? 0
-                  : debate.elo_change_loser ?? 0
-                : 0;
 
-              return (
-                <Link
-                  key={debate.id}
-                  to={`/arena/${debate.id}`}
-                  className="agent-detail__debate-item stagger-item"
-                  style={{ '--stagger-delay': `${index * 0.05}s` } as CSSProperties}
-                >
-                  <div>
-                    <div className="agent-detail__debate-opponent">vs {opponent}</div>
-                    <div className="agent-detail__debate-topic">{debate.topic}</div>
+          <div className="card stock-card">
+            <div className="flex-between align-start mb-16">
+              <h3>📈 {t('agent_detail.stock.title')}</h3>
+              {stock && (
+                <div className={`price-badge ${stock.price_change_24h >= 0 ? 'up' : 'down'}`}>
+                  {stock.current_price} G
+                </div>
+              )}
+            </div>
+            
+            {stock ? (
+              <>
+                <div className="chart-container mb-16">
+                  <StockHistoryChart data={history} height={180} />
+                </div>
+                <div className="stat-grid">
+                <div className="stat-item">
+                  <label>Price</label>
+                  <div className="stat-value">{stock.current_price} G</div>
+                </div>
+                <div className="stat-item">
+                  <label>Market Cap</label>
+                  <div className="stat-value">{stock.market_cap.toLocaleString()} G</div>
+                </div>
+                <div className="stat-item">
+                  <label>Total Shares</label>
+                  <div className="stat-value">{stock.total_shares.toLocaleString()}</div>
+                </div>
+                <div className="stat-item">
+                  <label>Change (24h)</label>
+                  <div className={`stat-value ${stock.price_change_24h >= 0 ? 'text-green' : 'text-red'}`}>
+                    {stock.price_change_24h}%
                   </div>
-                  <div className="agent-detail__debate-meta">
-                    <span
-                      className={`agent-detail__result agent-detail__result--${resultLabel}`}
-                    >
-                      {resultLabel}
-                    </span>
-                    <span
-                      className={`elo-change ${eloDelta >= 0 ? 'elo-change--up' : 'elo-change--down'}`}
-                    >
-                      {eloDelta >= 0 ? `+${eloDelta}` : eloDelta}
-                    </span>
-                    <span className="agent-detail__debate-date">
-                      {debate.completed_at
-                        ? new Date(debate.completed_at).toLocaleDateString(
-                            i18n.language === 'ko' ? 'ko-KR' : 'en-US'
-                          )
-                        : '-'}
-                    </span>
+                </div>
+                </div>
+                <button
+                  className="btn btn--primary btn--sm mt-16"
+                  onClick={() => navigate('/market')}
+                  style={{ width: '100%' }}
+                >
+                  📊 {t('agent_detail.trade_on_market')}
+                </button>
+              </>
+            ) : (
+              <p className="text-gray">{t('agent_detail.stock.not_listed')}</p>
+            )}
+
+          </div>
+        </section>
+      )}
+
+      {/* Philosophy Card */}
+      {activeTab === 'info' && agent?.philosophy && (
+        <section className="card animate-fade-in" style={{ marginTop: '1rem' }}>
+          <h3>💭 {t('agent_detail.philosophy')}</h3>
+          <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.7, marginTop: '0.75rem' }}>
+            "{agent.philosophy}"
+          </p>
+        </section>
+      )}
+
+      {/* Tab Content: Debates */}
+      {activeTab === 'debates' && (
+        <section className="card agent-detail__debates animate-fade-in">
+          <h3>⚔️ {t('agent_detail.debates.recent_title')}</h3>
+          {debates.length === 0 ? (
+            <p className="text-gray">{t('agent_detail.debates.empty')}</p>
+          ) : (
+            <div className="debate-list">
+              {debates.map(d => (
+                <Link to={`/arena/${d.id}`} key={d.id} className="debate-item">
+                  <div className="debate-item__vs">
+                    <span>{d.agent1_name}</span>
+                    <span className="vs">vs</span>
+                    <span>{d.agent2_name}</span>
+                  </div>
+                  <div className="debate-item__topic">{d.topic}</div>
+                  <div className="debate-item__meta">
+                    {d.winner_id ? `🏆 ${d.winner_name}` : 'Draw'} • {new Date(d.completed_at || '').toLocaleDateString()}
                   </div>
                 </Link>
-              );
-            })}
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Tab Content: Shareholders Meeting */}
+      {activeTab === 'shareholders' && (
+        <section className="card agent-detail__shareholders animate-fade-in">
+          <div className="section-header">
+            <div>
+              <h3 className="section-header__title">{t('agent_detail.shareholders.title')}</h3>
+              <p className="section-header__subtitle">{t('agent_detail.shareholders.subtitle')}</p>
+            </div>
           </div>
-        )}
-      </section>
+
+          <div className="proposal-form">
+            <input 
+              type="text" 
+              className="input" 
+              placeholder={t('agent_detail.proposal.placeholder')} 
+              value={newTopic}
+              onChange={(e) => setNewTopic(e.target.value)}
+            />
+            <button className="btn btn--primary" onClick={handleCreateProposal}>
+              {t('agent_detail.proposal.submit')}
+            </button>
+          </div>
+
+          <div className="proposal-list">
+            {proposals.length === 0 ? (
+              <div className="empty-state text-sm">{t('agent_detail.proposal.empty')}</div>
+            ) : (
+              proposals.map(p => (
+                <div key={p.id} className="proposal-item">
+                  <div className="proposal-item__content">
+                    <div className="proposal-item__topic">{p.topic}</div>
+                    <div className="proposal-item__meta">
+                      📅 {new Date(p.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="proposal-item__vote">
+                    <div className="proposal-vote-count">{p.votes} Votes</div>
+                    <button 
+                      className={`btn btn--sm ${p.user_voted ? 'btn--secondary' : 'btn--outline'}`}
+                      onClick={() => handleVote(p.id)}
+                      disabled={p.user_voted}
+                    >
+                      {p.user_voted ? 'Voted' : 'Vote'}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

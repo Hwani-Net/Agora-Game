@@ -62,6 +62,43 @@ export async function getAgentStock(agentId: string) {
   return data;
 }
 
+export async function fetchStockHistory(stockId: string) {
+  const { data, error } = await supabase
+    .from('stock_price_history')
+    .select('price, timestamp')
+    .eq('stock_id', stockId)
+    .order('timestamp', { ascending: true })
+    .limit(100);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function capturePortfolioSnapshot() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  
+  const { error } = await supabase.rpc('capture_portfolio_snapshot', {
+    p_user_id: user.id
+  });
+  if (error) console.warn('Snapshot skipped:', error.message);
+}
+
+export async function fetchPortfolioHistory() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('portfolio_history')
+    .select('total_assets, recorded_at')
+    .eq('user_id', user.id)
+    .order('recorded_at', { ascending: true })
+    .limit(50);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+
 export async function createAgent(agent: {
   name: string;
   persona: string;
@@ -204,10 +241,28 @@ export async function startAutoBattle(): Promise<unknown> {
 // ─── SSE Streaming Debate ───
 
 export type DebateEvent = {
-  type: 'matched' | 'round_start' | 'speaking' | 'argument' | 'judging' | 'result' | 'complete' | 'error';
+  type: 'matched' | 'round_start' | 'speaking' | 'argument' | 'judging' | 'result' | 'complete' | 'error' | 'score_update';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
 };
+
+export interface DebateResult {
+  winner: {
+    name: string;
+    eloChange: number;
+    newElo: number;
+  };
+  loser: {
+    name: string;
+    eloChange: number;
+    newElo: number;
+  };
+  scores: {
+    agent1: { logic: number; evidence: number; persuasion: number };
+    agent2: { logic: number; evidence: number; persuasion: number };
+  };
+  reasoning: string;
+}
 
 export function streamDebate(
   onEvent: (event: DebateEvent) => void,
@@ -336,6 +391,7 @@ export async function tradeStock(
 
 export interface PortfolioItem {
   stock_id: string;
+  agent_id: string;
   agent_name: string;
   shares_owned: number;
   avg_buy_price: number;
@@ -387,6 +443,7 @@ export async function fetchPortfolio(): Promise<PortfolioItem[]> {
 
       return {
         stock_id: o.stock_id,
+        agent_id: stock?.agent_id || '',
         agent_name: agentName,
         shares_owned: sharesOwned,
         avg_buy_price: avgBuyPrice,
@@ -601,3 +658,182 @@ export async function fetchGoldHistory(limit = 10): Promise<GoldTransaction[]> {
     return [];
   }
 }
+// ─── Shareholder Proposals ───
+
+export interface Proposal {
+  id: string;
+  topic: string;
+  votes: number;
+  created_at: string;
+  user_voted?: boolean;
+}
+
+export async function getProposals(agentId: string): Promise<Proposal[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 1. Fetch proposals
+  const { data: proposals, error } = await supabase
+    .from('topic_proposals')
+    .select('*')
+    .eq('agent_id', agentId)
+    .order('votes', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  if (!proposals) return [];
+
+  // 2. Check if user voted (if logged in)
+  let votedProposalIds = new Set<string>();
+  if (user) {
+    const { data: votes } = await supabase
+      .from('proposal_votes')
+      .select('proposal_id')
+      .eq('user_id', user.id)
+      .in('proposal_id', proposals.map(p => p.id));
+    
+    if (votes) {
+      votes.forEach(v => votedProposalIds.add(v.proposal_id));
+    }
+  }
+
+  return proposals.map(p => ({
+    ...p,
+    user_voted: votedProposalIds.has(p.id)
+  }));
+}
+
+export async function createProposal(agentId: string, topic: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('LOGIN_REQUIRED');
+
+  // Proper check: Get stock_id for agent -> check ownership
+  const { data: stock } = await supabase
+    .from('agent_stocks')
+    .select('id')
+    .eq('agent_id', agentId)
+    .single();
+
+    
+  if (!stock) throw new Error('STOCK_NOT_FOUND');
+
+  const { data: shareData } = await supabase
+    .from('stock_ownership')
+    .select('shares_owned') // Column name is shares_owned
+    .eq('user_id', user.id)
+    .eq('stock_id', stock.id)
+    .single();
+
+  if (!shareData || shareData.shares_owned < 1) {
+    throw new Error('MUST_BE_SHAREHOLDER');
+  }
+
+  const { error } = await supabase
+    .from('topic_proposals')
+    .insert({
+      agent_id: agentId,
+      user_id: user.id,
+      topic: topic,
+    });
+
+  if (error) throw new Error(error.message);
+}
+
+export async function voteProposal(proposalId: string, agentId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('LOGIN_REQUIRED');
+
+  // 1. Get user's share count
+  const { data: stock } = await supabase
+    .from('agent_stocks')
+    .select('id')
+    .eq('agent_id', agentId)
+    .single();
+    
+  if (!stock) throw new Error('STOCK_NOT_FOUND');
+
+  const { data: shareData } = await supabase
+    .from('stock_ownership')
+    .select('shares_owned')
+    .eq('user_id', user.id)
+    .eq('stock_id', stock.id)
+    .single();
+
+  const shares = shareData?.shares_owned || 0;
+  if (shares <= 0) throw new Error('NO_SHARES_TO_VOTE');
+
+  // 2. Call RPC to vote
+  const { error } = await supabase.rpc('vote_proposal', {
+    proposal_id_input: proposalId,
+    shares_count: shares
+  });
+
+  if (error) throw new Error(error.message);
+}
+
+// ─── Bounty Quests ───
+
+export async function fetchBountySubmissions(questId: string) {
+  const { data, error } = await supabase
+    .from('bounty_submissions')
+    .select(`
+      *,
+      agents:agent_id (name, faction, elo_score, persona)
+    `)
+    .eq('quest_id', questId)
+    .order('votes', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function triggerBountyResponse(questId: string) {
+  const { data, error } = await supabase.functions.invoke('respond-bounty', {
+    body: { quest_id: questId },
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function awardBounty(questId: string, submissionId: string) {
+  // 1. Mark quest as completed and set solver
+  const { data: sub } = await supabase
+    .from('bounty_submissions')
+    .select('agent_id')
+    .eq('id', submissionId)
+    .single();
+
+  if (!sub) throw new Error('SUBMISSION_NOT_FOUND');
+
+  const { error: qError } = await supabase
+    .from('quests')
+    .update({ 
+      status: 'completed',
+      solver_agent_id: sub.agent_id
+    })
+    .eq('id', questId);
+
+  if (qError) throw qError;
+
+  return { success: true };
+}
+
+// ─── Usage & Limits ───
+
+export async function fetchUsageStats(): Promise<{
+  debates_today: number;
+  trades_today: number;
+  last_debate_date: string;
+  last_trade_date: string;
+} | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('usage_tracking')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error) return null;
+  return data;
+}
+

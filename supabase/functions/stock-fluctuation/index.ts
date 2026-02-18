@@ -56,11 +56,16 @@ Deno.serve(async (req: Request) => {
         .update({
           current_price: newPrice,
           price_change_24h: newChange24h,
-          market_cap: newPrice * 1000, // total_shares is always 1000
+          market_cap: newPrice * 1000, 
         })
         .eq("id", stock.id);
 
       if (!updateError) {
+        // Log history (Migration V2)
+        await supabase
+          .from("stock_price_history")
+          .insert({ stock_id: stock.id, price: newPrice });
+
         updates.push({
           id: stock.id,
           old_price: stock.current_price,

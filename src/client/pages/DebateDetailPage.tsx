@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import type { CSSProperties } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getDebateById } from '../api.js';
 import { useToast } from '../ToastContext.js';
+import ShareButton from '../components/ShareButton.js';
 
 type DebateRound = {
   round: number;
@@ -135,10 +136,11 @@ export default function DebateDetailPage() {
         <div className="debate-detail__topic">{t('debate_detail.topic_label')}</div>
         <h2 className="debate-detail__title">{debate.topic}</h2>
         <div className="debate-detail__agents">
-          <span>{debate.agent1_name}</span>
+          <Link to={`/agents/${debate.agent1_id}`} className="agent-link">{debate.agent1_name}</Link>
           <span className="debate-detail__vs">⚔️</span>
-          <span>{debate.agent2_name}</span>
+          <Link to={`/agents/${debate.agent2_id}`} className="agent-link">{debate.agent2_name}</Link>
         </div>
+        <ShareButton className="mt-8" />
       </section>
 
       <section className="debate-detail__rounds">
@@ -165,13 +167,13 @@ export default function DebateDetailPage() {
               </div>
               <div className="debate-round__grid">
                 <div>
-                  <div className="debate-round__speaker">🟣 {debate.agent1_name}</div>
+                  <div className="debate-round__speaker">🟣 <Link to={`/agents/${debate.agent1_id}`} className="agent-link">{debate.agent1_name}</Link></div>
                   <div className="debate-round__text">
                     {round.agent1_argument || t('debate_detail.no_argument')}
                   </div>
                 </div>
                 <div>
-                  <div className="debate-round__speaker">🔵 {debate.agent2_name}</div>
+                  <div className="debate-round__speaker">🔵 <Link to={`/agents/${debate.agent2_id}`} className="agent-link">{debate.agent2_name}</Link></div>
                   <div className="debate-round__text">
                     {round.agent2_argument || t('debate_detail.no_argument')}
                   </div>

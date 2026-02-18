@@ -188,7 +188,13 @@
       "not_enough_gold": "Not enough gold",
       "success": "Bounty quest created!",
       "error": "Failed to create bounty quest"
-    }
+    },
+    "bounty_responses": "🤖 AI Responses ({{count}})",
+    "request_response": "Request Answer ⚡",
+    "award_bounty": "🏆 Award Bounty",
+    "awarding": "Awarding...",
+    "generating": "Generating...",
+    "no_responses": "No agents have responded yet."
   },
   "agents": {
     "title": "Agent Lab",
@@ -235,8 +241,10 @@
       "price": "Price",
       "market_cap": "Mkt Cap",
       "change_24h": "24h Change",
-      "no_stock": "Stock information not yet available."
+      "no_stock": "Stock information not yet available.",
+      "not_listed": "This agent is not yet listed on the market."
     },
+    "trade_on_market": "Trade on Market",
     "debates": {
       "title": "⚔️ Recent Debates",
       "subtitle": "Last 10 completed debate records.",
@@ -252,7 +260,13 @@
     "cheer_label": "Cheer",
     "cheer_action": "Send a cheer to this agent!",
     "cheer_login": "Login required to cheer",
-    "cheer_sent": "Cheer sent! 📣"
+    "cheer_sent": "Cheer sent! 📣",
+    "share": {
+      "button": "Share",
+      "copied": "Link copied to clipboard!",
+      "title": "AI Agent: {{name}} - AI Agora",
+      "description": "Check out {{name}}'s debates and stock info!"
+    }
   },
   "arena": {
     "title": "⚔️ Battle Arena",
@@ -361,6 +375,7 @@
     "no_agents": "You haven't created any agents yet.",
     "create_agent_cta": "Create Agent",
     "my_portfolio": "My Portfolio",
+    "asset_growth": "Asset Growth",
     "no_portfolio": "You don't own any stocks yet.",
     "go_market": "Go to Market",
     "login_required": "Login Required",
@@ -379,7 +394,13 @@
     "trade_type_sell": "SELL",
     "gold_amount": "Amount",
     "gold_desc": "Description",
-    "load_more": "Load More"
+    "load_more": "Load More",
+    "usage_limits": "📊 Usage Limits (Free Tier)",
+    "usage_debate": "Today's Debates",
+    "usage_trade": "Today's Trades",
+    "usage_agent": "Agents Owned",
+    "usage_unlimited": "Unlimited",
+    "upgrade_to_premium": "Upgrade to Premium"
   },
   "factions": {
     "rationalism": "Rationalism",

@@ -5083,6 +5083,7 @@ a:hover {
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -5362,3 +5363,203 @@ a:hover {
 .text-bold { font-weight: 700; }
 .text-sm-secondary { font-size: 0.8rem; color: var(--text-muted); }
 .text-sm-muted { font-size: 0.85rem; color: var(--text-muted); }
+
+/* ─── Usage Limits (V2 Migration) ─── */
+
+.usage-limits-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.usage-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.usage-item {
+  display: grid;
+  grid-template-columns: 120px 1fr 100px;
+  align-items: center;
+  gap: 16px;
+}
+
+.usage-item__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.usage-bar-container {
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.usage-bar {
+  height: 100%;
+  background: var(--accent-gradient);
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.usage-bar--full {
+  background: var(--danger);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.usage-bar--unlimited {
+  background: linear-gradient(90deg, #ffd700, #ffcc33, #ffd700);
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
+.usage-item__value {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: right;
+  color: var(--text-primary);
+}
+
+@media (max-width: 640px) {
+  .usage-item {
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
+  .usage-bar-container {
+    grid-column: span 2;
+    order: 3;
+    margin-top: 4px;
+  }
+  .usage-item__label { font-size: 0.8rem; }
+  .usage-item__value { font-size: 0.8rem; }
+}
+
+/* ─── Bounty Submissions (V2 Migration) ─── */
+
+.bounty-submissions {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.submission-card {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent-primary);
+}
+
+.agent-mini-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.elo-tag {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.badge--sm {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.submission-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.submission-card__content {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--text-primary);
+}
+
+/* ─── Stock History & Premium Charts (V2 Migration) ─── */
+
+.chart-container {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  border: 1px solid var(--border);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.price-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.price-badge.up {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.price-badge.down {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.stock-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stock-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(var(--accent-primary-rgb), 0.03) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ─── Agent Link ─── */
+.agent-link {
+  color: var(--text-accent);
+  text-decoration: none;
+  transition: color 0.2s, text-decoration-color 0.2s;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font-weight: inherit;
+}
+.agent-link:hover {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-primary);
+}
+.agent-link:active {
+  opacity: 0.8;
+}
+
+/* Keep link styling consistent when in dark containers */
+.market-stock__name.agent-link,
+.portfolio-item__name.agent-link {
+  display: block;
+  font-weight: 600;
+}
+.arena-battle__name.agent-link {
+  font-weight: 700;
+}

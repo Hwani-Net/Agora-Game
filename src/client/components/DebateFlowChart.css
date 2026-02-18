@@ -1,0 +1,61 @@
+.debate-flow-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  margin-bottom: 1.5rem;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.chart-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-container {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+.latest-reason {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.latest-reason .badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.8;
+  width: fit-content;
+}
+
+.latest-reason p {
+  margin: 0;
+}

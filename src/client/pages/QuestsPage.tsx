@@ -5,6 +5,7 @@ import { useAuthContext } from '../AuthContext.js';
 import { useToast } from '../ToastContext.js';
 import { supabase } from '../supabase.js';
 import QuestProgressBar from '../components/QuestProgressBar.js';
+import BountySubmissions from '../components/BountySubmissions.js';
 
 interface Quest {
   id: string;
@@ -14,6 +15,7 @@ interface Quest {
   reward_gold: number;
   status: string;
   created_at: string;
+  creator_id?: string;
 }
 
 // Map DB Korean titles to i18n keys
@@ -41,6 +43,7 @@ export default function QuestsPage() {
   const [filter, setFilter] = useState<'all' | 'daily' | 'bounty'>('all');
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [claiming, setClaiming] = useState<string | null>(null);
+  const [expandedQuestId, setExpandedQuestId] = useState<string | null>(null);
 
   // ─── Bounty Modal State ───
   const [showBountyModal, setShowBountyModal] = useState(false);
@@ -247,7 +250,9 @@ export default function QuestsPage() {
             return (
               <div
                 key={quest.id}
-                className={`card${isAlreadyClaimed ? ' quest-card--completed' : ''}`}
+                className={`card quest-card${isAlreadyClaimed ? ' quest-card--completed' : ''}`}
+                onClick={() => quest.type === 'bounty' && setExpandedQuestId(expandedQuestId === quest.id ? null : quest.id)}
+                style={{ cursor: quest.type === 'bounty' ? 'pointer' : 'default' }}
               >
                 <div className="quest-card__header">
                   <div className="quest-card__title-group">
@@ -293,6 +298,17 @@ export default function QuestsPage() {
                     minute: '2-digit',
                   })}
                 </div>
+
+                {/* ─── Bounty Responses (Expanded) ─── */}
+                {quest.type === 'bounty' && expandedQuestId === quest.id && (
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <BountySubmissions 
+                      questId={quest.id} 
+                      isOwner={user?.id === quest.creator_id}
+                      onUpdate={loadQuests}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}

@@ -135,33 +135,68 @@ async function callGemini(
 }
 
 // ─── Prompt Builders ───
+// ─── Faction-Based Prompt Strategies (V2 Migration) ───
+const FACTION_STRATEGIES: Record<string, string> = {
+  // V2 original factions
+  "합리주의": "단계별 논리적 추론과 수학적·통계적 근거를 최우선으로 삼습니다. 감정이 아닌 데이터로 승부합니다.",
+  "윤리연합": "인권, 안전, 사회적 영향을 최우선으로 고려합니다. 윤리적 딜레마에서 원칙을 지키는 논증을 펼칩니다.",
+  "실용주의": "비용효율, 실현가능성, 실제 데이터에 기반한 실용적 해법을 제시합니다. 이상보다 현실을 봅니다.",
+  "이상주의": "비전, 감성, 미래 가능성에 초점을 맞춥니다. 현실의 한계를 넘어선 대담한 해법을 제안합니다.",
+  // Current v1 factions (backward-compat)
+  "보수": "개인의 자유, 시장 경제 효율성, 정부의 간섭 최소화를 최우선 가치로 둡니다.",
+  "진보": "사회적 평등, 공공의 이익, 약자 보호 및 정부의 적극적 역할을 옹호합니다.",
+  "Libertarian": "개인의 자유, 시장 경제 효율성, 정부의 간섭 최소화를 최우선 가치로 둡니다.",
+  "Socialist": "사회적 평등, 공공의 이익, 약자 보호 및 정부의 적극적 역할을 옹호합니다.",
+};
+
 function buildAgentPrompt(agent: Agent): string {
-  return `당신은 "${agent.name}"이라는 이름의 AI 철학자입니다.
+  // Faction-based logic injection (matches partial keys too)
+  let logicStrategy = FACTION_STRATEGIES[agent.faction] ?? "";
+  if (!logicStrategy) {
+    // Fallback: partial match for compound faction names
+    for (const [key, val] of Object.entries(FACTION_STRATEGIES)) {
+      if (agent.faction.includes(key)) { logicStrategy = val; break; }
+    }
+    if (!logicStrategy) logicStrategy = "실용주의적 관점에서 데이터와 현실적인 해결책을 중시합니다.";
+  }
 
-성격: ${agent.persona}
-철학적 성향: ${agent.philosophy}
-소속 진영: ${agent.faction}
+  return `당신은 "${agent.name}"입니다.
+${agent.persona ? `성격: ${agent.persona}` : ""}
+${agent.philosophy ? `철학: ${agent.philosophy}` : ""}
+소속: ${agent.faction}
 
-당신은 이 성격과 철학에 맞게 토론에 참여합니다.
-- 항상 자신의 철학적 관점에서 일관되세요
-- 논리적이고 설득력 있게 주장하세요
-- 상대방의 주장을 구체적으로 반박하세요
-- 한국어로 답변하세요
-- 답변은 300자 이내로 간결하게 작성하세요`;
+[핵심 토론 전략]
+${logicStrategy}
+
+[당신의 임무]
+당신은 지금 치열한 논쟁 중입니다. 상대방의 말 꼬리를 잡고, 논리적 허점을 파고드세요.
+점잖은 학자가 아니라, 청중을 사로잡는 '논객'이 되어야 합니다.
+
+[작성 수칙]
+1. 상대방의 핵심 논리를 정확히 지적하고, "그것은 틀렸습니다"라고 단호하게 반박하세요.
+2. 비유와 예시를 사용하여 청중(투자자)가 이해하기 쉽게 설명하세요.
+3. 감정에 호소하지 말고, 차가운 논리로 압도하세요. (단, 말투는 성격을 따름)
+4. 답변은 400자 이내로, 임팩트 있게 끝내세요.
+5. 한국어로 자연스럽게 말하세요.`;
 }
 
 function buildJudgePrompt(): string {
-  return `당신은 AI 토론 심판관입니다. 객관적이고 공정하게 판정합니다.
+  return `당신은 AI 토론 대회의 냉철한 심판관입니다.
 
-평가 기준:
-- 논리적 일관성 (40%): 주장의 논리적 구조와 일관성
-- 근거 충실성 (30%): 구체적 근거와 사례 제시
-- 설득력 (30%): 전체적인 설득 효과
+[평가 기준]
+1. 논리적 타격감 (Logic): 상대의 논리적 허점을 얼마나 날카롭게 찔렀는가? (40점)
+2. 근거의 독창성 (Evidence): 뻔한 소리가 아니라, 참신한 관점이나 구체적 예시를 들었는가? (30점)
+3. 대중 설득력 (Persuasion): 이 말을 듣고 청중이 "와, 맞네!" 하고 감탄할 만한가? (30점)
 
-반드시 아래 JSON 형식으로만 답변하세요:
+[판정 가이드]
+- 양쪽 다 말이 되면 무승부 주지 말고, 더 '매력적인' 쪽의 손을 들어주세요.
+- 말투가 아니라 '알맹이'를 보세요.
+- 한 쪽이 일방적으로 밀렸다면 10:0도 가능합니다.
+
+반드시 아래 JSON 형식으로만 응답하세요:
 {
   "winner": "agent1" 또는 "agent2",
-  "reasoning": "판정 이유를 3-4문장으로 설명",
+  "reasoning": "승패를 가른 결정적 한 방이 무엇이었는지 3문장 요약",
   "scores": {
     "agent1": { "logic": 0-10, "evidence": 0-10, "persuasion": 0-10 },
     "agent2": { "logic": 0-10, "evidence": 0-10, "persuasion": 0-10 }
@@ -293,10 +328,48 @@ async function runDebateCore(
     });
 
     rounds.push({ round, agent1_argument: agent1Argument, agent2_argument: agent2Argument });
+
+    // ─── Round Scoring (Dynamic Graph) ───
+    // Ask Judge to score this specific round instantly
+    const roundScorePrompt = `토론 주제: "${debateTopic}"
+    
+[라운드 ${round} 현황]
+${agent1.name} (${agent1.faction}): "${agent1Argument}"
+${agent2.name} (${agent2.faction}): "${agent2Argument}"
+
+이 라운드만 놓고 봤을 때, 누가 더 논리적이고 우세했나요?
+두 에이전트의 점수 합이 100이 되도록 점수를 배분하세요. (예: 55 vs 45)
+승자가 50점 이상이어야 합니다. 동점은 없습니다.
+
+반드시 JSON 형식으로만 응답:
+{ "agent1_score": number, "agent2_score": number, "reason": "한줄평" }`;
+
+    try {
+      const scoreRaw = await callGemini(geminiApiKey, "당신은 AI 토론 심판입니다.", roundScorePrompt, 128, 0.5);
+      const jsonMatch = scoreRaw.match(/\{[\s\S]*\}/);
+      const roundScore = JSON.parse(jsonMatch?.[0] ?? scoreRaw);
+
+      emit?.("score_update", {
+        round,
+        scores: {
+          agent1: roundScore.agent1_score,
+          agent2: roundScore.agent2_score,
+        },
+        reason: roundScore.reason,
+      });
+    } catch (e) {
+      console.error("Failed to score round:", e);
+      // Fallback: 50:50
+      emit?.("score_update", {
+        round,
+        scores: { agent1: 50, agent2: 50 },
+        reason: "심판 통신 오류로 인한 무승부 처리",
+      });
+    }
   }
 
-  // AI Judge
-  emit?.("judging", { message: "AI 심판이 판정 중..." });
+  // AI Judge Final Verdict
+  emit?.("judging", { message: "AI 심판이 최종 판정 중..." });
 
   const fullDebateText = rounds
     .map(
@@ -374,23 +447,40 @@ async function runDebateCore(
     console.error("Failed to update debate record:", updateError);
   }
 
-  // Update stock prices
+  // ─── Update Stock Prices (V2 Migration: streak bonus + min price) ───
   const { data: winnerStock } = await supabase
     .from("agent_stocks")
     .select("*")
     .eq("agent_id", winnerId)
     .single();
 
+  // Check for winning streak (3+ consecutive wins = bonus)
+  const { count: recentWinCount } = await supabase
+    .from("debates")
+    .select("*", { count: "exact", head: true })
+    .eq("winner_id", winnerId)
+    .eq("status", "completed")
+    .gte("completed_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+  const isStreak = (recentWinCount ?? 0) >= 3;
+
   if (winnerStock) {
-    const priceBoost = winnerStock.current_price * 0.02;
+    const boostRate = isStreak ? 0.04 : 0.02; // Streak: 4%, Normal: 2%
+    const priceBoost = winnerStock.current_price * boostRate;
+    const newWinnerPrice = winnerStock.current_price + priceBoost;
     await supabase
       .from("agent_stocks")
       .update({
-        current_price: winnerStock.current_price + priceBoost,
-        market_cap: (winnerStock.current_price + priceBoost) * winnerStock.total_shares,
+        current_price: newWinnerPrice,
+        market_cap: newWinnerPrice * winnerStock.total_shares,
         price_change_24h: (priceBoost / winnerStock.current_price) * 100,
       })
       .eq("id", winnerStock.id);
+
+    // Log history (Migration V2)
+    await supabase
+      .from("stock_price_history")
+      .insert({ stock_id: winnerStock.id, price: newWinnerPrice });
+
   }
 
   const { data: loserStock } = await supabase
@@ -401,30 +491,38 @@ async function runDebateCore(
 
   if (loserStock) {
     const priceDrop = loserStock.current_price * 0.01;
+    const newLoserPrice = Math.max(loserStock.current_price - priceDrop, 100); // Min 100G floor
     await supabase
       .from("agent_stocks")
       .update({
-        current_price: loserStock.current_price - priceDrop,
-        market_cap: (loserStock.current_price - priceDrop) * loserStock.total_shares,
-        price_change_24h: (-priceDrop / loserStock.current_price) * 100,
+        current_price: newLoserPrice,
+        market_cap: newLoserPrice * loserStock.total_shares,
+        price_change_24h: ((newLoserPrice - loserStock.current_price) / loserStock.current_price) * 100,
       })
       .eq("id", loserStock.id);
+
+    // Log history (Migration V2)
+    await supabase
+      .from("stock_price_history")
+      .insert({ stock_id: loserStock.id, price: newLoserPrice });
   }
 
   // ─── Dividend Distribution: 5G per share to winner's shareholders ───
+  // BUG FIX: was querying by agent_id/shares (wrong columns), now using stock_id/shares_owned
   if (winnerStock) {
     const DIVIDEND_PER_SHARE = 5;
     const { data: shareholders } = await supabase
       .from("stock_ownership")
-      .select("user_id, shares")
-      .eq("agent_id", winnerId)
-      .gt("shares", 0);
+      .select("user_id, shares_owned")
+      .eq("stock_id", winnerStock.id)
+      .gt("shares_owned", 0);
 
     if (shareholders && shareholders.length > 0) {
+      console.log(`💰 Distributing dividends to ${shareholders.length} shareholders of ${winnerAgent.name}`);
       for (const holder of shareholders) {
-        const dividendAmount = holder.shares * DIVIDEND_PER_SHARE;
+        const dividendAmount = holder.shares_owned * DIVIDEND_PER_SHARE;
 
-        // Add gold
+        // Add gold via atomic RPC
         await supabase.rpc("add_gold", {
           p_user_id: holder.user_id,
           p_amount: dividendAmount,
@@ -436,7 +534,7 @@ async function runDebateCore(
           user_id: holder.user_id,
           amount: dividendAmount,
           type: "dividend",
-          description: `Dividend: ${winnerAgent.name} wins (${holder.shares} shares × ${DIVIDEND_PER_SHARE}G)`,
+          description: `Dividend: ${winnerAgent.name} wins (${holder.shares_owned} shares × ${DIVIDEND_PER_SHARE}G)`,
         });
       }
     }
@@ -485,6 +583,28 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.json();
     const { mode, agent1_id, agent2_id, topic, stream } = body;
+
+    // ─── Rate Limiting (V2 Migration) ───
+    const authHeader = req.headers.get("authorization");
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (user) {
+        const { data: usageCheck } = await supabase.rpc("check_and_increment_usage", {
+          p_user_id: user.id,
+          p_action: "debate",
+        });
+        if (usageCheck && usageCheck.allowed === false) {
+          return new Response(
+            JSON.stringify({
+              error: `일일 토론 제한에 도달했습니다. (${usageCheck.used}/${usageCheck.limit}). Premium으로 업그레이드하세요!`,
+              upgrade: true,
+            }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      }
+    }
 
     // ─── Match agents ───
     let agent1: Agent;

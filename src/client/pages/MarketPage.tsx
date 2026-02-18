@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { fetchStocks, fetchPortfolio, tradeStock, type PortfolioItem, type TradeResult } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
@@ -170,7 +171,7 @@ export default function MarketPage() {
             {portfolio.map((item) => (
               <div key={item.stock_id} className="portfolio-item card">
                 <div className="portfolio-item__info">
-                  <span className="portfolio-item__name">🤖 {item.agent_name}</span>
+                  <Link to={`/agents/${stocks.find(s => s.id === item.stock_id)?.agent_id || ''}`} className="portfolio-item__name agent-link">🤖 {item.agent_name}</Link>
                   <span className="portfolio-item__shares">{t('market.portfolio.shares', { count: item.shares_owned })}</span>
                 </div>
                 <div className="portfolio-item__prices">
@@ -239,9 +240,9 @@ export default function MarketPage() {
                 className="card market-stock-row"
               >
                 <div>
-                  <div className="market-stock__name">
+                  <Link to={`/agents/${stock.agent_id}`} className="market-stock__name agent-link">
                     🤖 {stock.agent_name || `Agent #${stock.agent_id.slice(0, 8)}`}
-                  </div>
+                  </Link>
                   <div className="market-stock__meta">
                     {stock.total_shares.toLocaleString()} {t('market.list.shares_unit')}
                     {owned > 0 && (
