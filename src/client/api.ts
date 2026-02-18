@@ -81,6 +81,20 @@ export async function createAgent(agent: {
   }).select().single();
 
   if (error) throw new Error(error.message);
+
+  // Auto-IPO: list on stock market at initial price 100G
+  const INITIAL_PRICE = 100;
+  const TOTAL_SHARES = 1000;
+  await supabase.from('agent_stocks').insert({
+    id: crypto.randomUUID(),
+    agent_id: id,
+    current_price: INITIAL_PRICE,
+    total_shares: TOTAL_SHARES,
+    available_shares: TOTAL_SHARES,
+    market_cap: INITIAL_PRICE * TOTAL_SHARES,
+    price_change_24h: 0,
+  });
+
   return data;
 }
 
@@ -398,6 +412,77 @@ export async function fetchQuests(type?: string): Promise<unknown[]> {
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   return data || [];
+}
+
+export async function createBountyQuest(quest: {
+  title: string;
+  description: string;
+  reward_gold: number;
+  difficulty: string;
+  deadline_hours: number;
+}): Promise<unknown> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) throw new Error('Login required');
+
+  const questId = crypto.randomUUID();
+  const deadline = new Date(Date.now() + quest.deadline_hours * 60 * 60 * 1000).toISOString();
+
+  // Deduct gold from user (bounty cost)
+  const { error: goldErr } = await supabase.rpc('add_gold', {
+    p_user_id: session.user.id,
+    p_amount: -quest.reward_gold,
+  });
+  if (goldErr) throw new Error(goldErr.message);
+
+  // Log gold transaction
+  await supabase.from('gold_transactions').insert({
+    id: crypto.randomUUID(),
+    user_id: session.user.id,
+    amount: -quest.reward_gold,
+    type: 'bounty_create',
+    description: `Bounty: ${quest.title}`,
+  });
+
+  const { data, error } = await supabase.from('quests').insert({
+    id: questId,
+    type: 'bounty',
+    title: quest.title,
+    description: quest.description,
+    reward_gold: quest.reward_gold,
+    difficulty: quest.difficulty,
+    status: 'open',
+    creator_id: session.user.id,
+    deadline,
+  }).select().single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function generateDailyQuests(): Promise<unknown> {
+  const { data, error } = await supabase.functions.invoke('generate-daily-quests');
+  if (error) throw new Error(error.message || 'Failed to generate quests');
+  return data;
+}
+
+// ─── News ───
+
+export async function fetchNews(limit = 20): Promise<unknown[]> {
+  const { data, error } = await supabase
+    .from('news')
+    .select('*')
+    .order('generated_at', { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.error('fetchNews error:', error.message);
+    return [];
+  }
+  return data || [];
+}
+
+export async function generateDailyNews(): Promise<unknown> {
+  const { data, error } = await supabase.functions.invoke('generate-daily-news');
+  if (error) throw new Error(error.message || 'Failed to generate news');
+  return data;
 }
 
 // ─── User Profile ───

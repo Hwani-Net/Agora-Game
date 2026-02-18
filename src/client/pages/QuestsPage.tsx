@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { fetchQuests } from '../api.js';
+import { fetchQuests, createBountyQuest } from '../api.js';
 import { useAuthContext } from '../AuthContext.js';
 import { useToast } from '../ToastContext.js';
 import { supabase } from '../supabase.js';
@@ -41,6 +41,17 @@ export default function QuestsPage() {
   const [filter, setFilter] = useState<'all' | 'daily' | 'bounty'>('all');
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [claiming, setClaiming] = useState<string | null>(null);
+
+  // ─── Bounty Modal State ───
+  const [showBountyModal, setShowBountyModal] = useState(false);
+  const [bountyForm, setBountyForm] = useState({
+    title: '',
+    description: '',
+    reward_gold: 100,
+    difficulty: 'Normal',
+    deadline_hours: 48,
+  });
+  const [bountySubmitting, setBountySubmitting] = useState(false);
 
   useEffect(() => {
     loadQuests();
@@ -139,6 +150,35 @@ export default function QuestsPage() {
     }
   }, [user, claiming, pushToast, t]);
 
+  // ─── Bounty Quest Creation ───
+  async function handleBountySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (bountySubmitting) return;
+
+    const goldBalance = user?.gold_balance ?? 0;
+    if (bountyForm.reward_gold < 100) {
+      pushToast(t('quests.bounty_form.min_reward'), 'error');
+      return;
+    }
+    if (bountyForm.reward_gold > goldBalance) {
+      pushToast(t('quests.bounty_form.not_enough_gold'), 'error');
+      return;
+    }
+
+    setBountySubmitting(true);
+    try {
+      await createBountyQuest(bountyForm);
+      pushToast(t('quests.bounty_form.success'), 'success');
+      setShowBountyModal(false);
+      setBountyForm({ title: '', description: '', reward_gold: 100, difficulty: 'Normal', deadline_hours: 48 });
+      loadQuests();
+    } catch {
+      pushToast(t('quests.bounty_form.error'), 'error');
+    } finally {
+      setBountySubmitting(false);
+    }
+  }
+
   function statusBadge(status: string) {
     const statusLabel = t(`quests.status.${status}`, { defaultValue: status });
     return (
@@ -155,6 +195,15 @@ export default function QuestsPage() {
           <h2 className="section-header__title">{t('quests.title')}</h2>
           <p className="section-header__subtitle">{t('quests.subtitle')}</p>
         </div>
+        {user && (
+          <button
+            className="btn btn--primary btn--sm"
+            onClick={() => setShowBountyModal(true)}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            {t('quests.create_bounty')}
+          </button>
+        )}
       </div>
 
       {/* ─── Filter ─── */}
@@ -249,6 +298,103 @@ export default function QuestsPage() {
           })}
         </div>
       )}
+
+      {/* ─── Bounty Creation Modal ─── */}
+      {showBountyModal && (
+        <div className="modal-overlay" onClick={() => setShowBountyModal(false)}>
+          <div className="modal-content card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <h3 style={{ marginBottom: '1rem' }}>{t('quests.bounty_form.title')}</h3>
+            <form onSubmit={handleBountySubmit}>
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                  {t('quests.bounty_form.quest_title')}
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={t('quests.bounty_form.quest_title_placeholder')}
+                  value={bountyForm.title}
+                  onChange={(e) => setBountyForm({ ...bountyForm, title: e.target.value })}
+                  required
+                  minLength={5}
+                  maxLength={100}
+                />
+              </div>
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                  {t('quests.bounty_form.quest_desc')}
+                </label>
+                <textarea
+                  className="form-input"
+                  placeholder={t('quests.bounty_form.quest_desc_placeholder')}
+                  value={bountyForm.description}
+                  onChange={(e) => setBountyForm({ ...bountyForm, description: e.target.value })}
+                  required
+                  minLength={10}
+                  maxLength={500}
+                  rows={3}
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                    {t('quests.bounty_form.reward')}
+                  </label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min={100}
+                    max={10000}
+                    step={50}
+                    value={bountyForm.reward_gold}
+                    onChange={(e) => setBountyForm({ ...bountyForm, reward_gold: Number(e.target.value) })}
+                    required
+                  />
+                  <small style={{ opacity: 0.7, fontSize: '0.75rem' }}>{t('quests.bounty_form.min_reward')}</small>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                    {t('quests.bounty_form.difficulty')}
+                  </label>
+                  <select
+                    className="form-input"
+                    value={bountyForm.difficulty}
+                    onChange={(e) => setBountyForm({ ...bountyForm, difficulty: e.target.value })}
+                  >
+                    <option value="Easy">Easy</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Hard">Hard</option>
+                    <option value="Insane">Insane</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                  {t('quests.bounty_form.deadline')}
+                </label>
+                <select
+                  className="form-input"
+                  value={bountyForm.deadline_hours}
+                  onChange={(e) => setBountyForm({ ...bountyForm, deadline_hours: Number(e.target.value) })}
+                >
+                  <option value={24}>{t('quests.bounty_form.deadline_24h')}</option>
+                  <option value={48}>{t('quests.bounty_form.deadline_48h')}</option>
+                  <option value={72}>{t('quests.bounty_form.deadline_72h')}</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn--secondary btn--sm" onClick={() => setShowBountyModal(false)}>
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="btn btn--primary btn--sm" disabled={bountySubmitting}>
+                  {bountySubmitting ? t('common.loading') : t('quests.bounty_form.submit')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

@@ -5,6 +5,7 @@
     "arena": "아레나",
     "market": "마켓",
     "quests": "퀘스트",
+    "news": "뉴스",
     "login": "로그인",
     "logout": "로그아웃",
     "gold": "골드",
@@ -168,7 +169,26 @@
     "claim_reward": "🎁 보상 수령",
     "reward_claimed": "보상이 지급되었습니다! +{{gold}}G",
     "already_claimed": "이미 수령한 보상입니다.",
-    "completed_badge": "✅ 완료"
+    "completed_badge": "✅ 완료",
+    "create_bounty": "💰 현상금 퀘스트 등록",
+    "bounty_form": {
+      "title": "현상금 퀘스트 등록",
+      "quest_title": "퀘스트 제목",
+      "quest_title_placeholder": "예: AI가 인류에게 미치는 영향 분석",
+      "quest_desc": "상세 설명",
+      "quest_desc_placeholder": "에이전트가 답변해야 할 구체적인 질문을 작성하세요",
+      "reward": "현상금 (골드)",
+      "difficulty": "난이도",
+      "deadline": "마감 기한",
+      "deadline_24h": "24시간",
+      "deadline_48h": "48시간",
+      "deadline_72h": "72시간",
+      "submit": "등록하기",
+      "min_reward": "최소 100G 이상",
+      "not_enough_gold": "골드가 부족합니다",
+      "success": "현상금 퀘스트가 등록되었습니다!",
+      "error": "등록에 실패했습니다"
+    }
   },
   "agents": {
     "title": "에이전트 연구실",
@@ -366,5 +386,42 @@
     "desc_pragmatism": "이론보다 실제 결과와 효용성을 중시하는 철학적 입장. 현실적 해결책과 실천적 가치를 추구합니다.",
     "desc_idealism": "이상과 가치를 통해 더 나은 세상을 만들 수 있다고 믿는 철학적 입장. 도덕적 원칙과 인류의 가능성을 탐구합니다.",
     "faction_label": "사상"
+  },
+  "news": {
+    "title": "📰 데일리 프로핏",
+    "subtitle": "AI 세계의 오늘을 전합니다",
+    "no_news": "아직 발행된 뉴스가 없습니다.",
+    "no_news_hint": "매일 AI가 서사적 뉴스를 생성합니다.",
+    "latest": "최신 뉴스",
+    "ticker_label": "속보"
+  },
+  "onboarding": {
+    "steps": {
+      "welcome": {
+        "title": "AI 아고라에 오신 것을 환영합니다!",
+        "desc": "철학 AI 에이전트를 육성하고, 토론시키고, 가상 주식에 투자하는 지식 경제 시뮬레이션 게임입니다."
+      },
+      "agent": {
+        "title": "에이전트 생성",
+        "desc": "나만의 AI 철학자를 만드세요. 이름, 성격, 소속 진영을 선택하면 토론 무대에 오를 준비 완료!"
+      },
+      "debate": {
+        "title": "토론 아레나",
+        "desc": "AI들이 자동으로 매칭되어 3라운드 토론을 벌입니다. AI 심판이 논리, 근거, 설득력을 평가합니다."
+      },
+      "stock": {
+        "title": "가상 주식 시장",
+        "desc": "에이전트의 주식을 사고팔아 이익을 얻으세요. 토론에서 이기면 주가 상승 + 배당금 지급!"
+      },
+      "quest": {
+        "title": "퀘스트 시스템",
+        "desc": "매일 새로운 퀘스트를 수행하고 골드를 벌어보세요. 원하는 질문을 현상금으로 등록할 수도 있습니다."
+      },
+      "ready": {
+        "title": "준비 완료!",
+        "desc": "지금 바로 첫 에이전트를 만들고 AI 아고라의 세계에 뛰어드세요!"
+      }
+    },
+    "start_playing": "시작하기"
   }
 }

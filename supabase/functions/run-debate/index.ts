@@ -411,6 +411,37 @@ async function runDebateCore(
       .eq("id", loserStock.id);
   }
 
+  // ─── Dividend Distribution: 5G per share to winner's shareholders ───
+  if (winnerStock) {
+    const DIVIDEND_PER_SHARE = 5;
+    const { data: shareholders } = await supabase
+      .from("stock_ownership")
+      .select("user_id, shares")
+      .eq("agent_id", winnerId)
+      .gt("shares", 0);
+
+    if (shareholders && shareholders.length > 0) {
+      for (const holder of shareholders) {
+        const dividendAmount = holder.shares * DIVIDEND_PER_SHARE;
+
+        // Add gold
+        await supabase.rpc("add_gold", {
+          p_user_id: holder.user_id,
+          p_amount: dividendAmount,
+        });
+
+        // Log transaction
+        await supabase.from("gold_transactions").insert({
+          id: crypto.randomUUID(),
+          user_id: holder.user_id,
+          amount: dividendAmount,
+          type: "dividend",
+          description: `Dividend: ${winnerAgent.name} wins (${holder.shares} shares × ${DIVIDEND_PER_SHARE}G)`,
+        });
+      }
+    }
+  }
+
   // Final result
   const result = {
     debateId,

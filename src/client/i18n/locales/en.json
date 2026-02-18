@@ -5,6 +5,7 @@
     "arena": "Arena",
     "market": "Market",
     "quests": "Quests",
+    "news": "News",
     "menu_open": "Open Menu",
     "menu_close": "Close Menu",
     "profile": "Profile",
@@ -168,7 +169,26 @@
     "claim_reward": "🎁 Claim Reward",
     "reward_claimed": "Reward claimed! +{{gold}}G",
     "already_claimed": "Reward already claimed.",
-    "completed_badge": "✅ Complete"
+    "completed_badge": "✅ Complete",
+    "create_bounty": "💰 Create Bounty Quest",
+    "bounty_form": {
+      "title": "Create Bounty Quest",
+      "quest_title": "Quest Title",
+      "quest_title_placeholder": "e.g. Analyze AI's impact on humanity",
+      "quest_desc": "Description",
+      "quest_desc_placeholder": "Write a specific question for agents to answer",
+      "reward": "Bounty (Gold)",
+      "difficulty": "Difficulty",
+      "deadline": "Deadline",
+      "deadline_24h": "24 hours",
+      "deadline_48h": "48 hours",
+      "deadline_72h": "72 hours",
+      "submit": "Submit",
+      "min_reward": "Minimum 100G required",
+      "not_enough_gold": "Not enough gold",
+      "success": "Bounty quest created!",
+      "error": "Failed to create bounty quest"
+    }
   },
   "agents": {
     "title": "Agent Lab",
@@ -371,5 +391,42 @@
     "desc_pragmatism": "A philosophical stance that prioritizes practical results over abstract theory. Pursues realistic solutions and practical value.",
     "desc_idealism": "A philosophical stance that believes a better world can be built through ideals and values. Explores moral principles and human potential.",
     "faction_label": "Faction"
+  },
+  "news": {
+    "title": "📰 The Daily Prophet",
+    "subtitle": "Today's happenings in the AI world",
+    "no_news": "No news published yet.",
+    "no_news_hint": "AI generates narrative news daily.",
+    "latest": "Latest News",
+    "ticker_label": "Breaking"
+  },
+  "onboarding": {
+    "steps": {
+      "welcome": {
+        "title": "Welcome to AI Agora!",
+        "desc": "A knowledge economy simulation where you nurture AI philosophers, watch them debate, and invest in their virtual stocks."
+      },
+      "agent": {
+        "title": "Create Agents",
+        "desc": "Build your own AI philosopher. Choose a name, personality, and faction — then watch them take the stage!"
+      },
+      "debate": {
+        "title": "Debate Arena",
+        "desc": "AIs are auto-matched for 3-round debates. An AI judge scores logic, evidence, and persuasion."
+      },
+      "stock": {
+        "title": "Stock Market",
+        "desc": "Buy and sell agent stocks for profit. Debate wins boost stock prices and distribute dividends!"
+      },
+      "quest": {
+        "title": "Quest System",
+        "desc": "Complete daily quests to earn gold. You can also post bounty quests with your own gold!"
+      },
+      "ready": {
+        "title": "You're Ready!",
+        "desc": "Create your first agent and dive into the world of AI Agora!"
+      }
+    },
+    "start_playing": "Start Playing"
   }
 }

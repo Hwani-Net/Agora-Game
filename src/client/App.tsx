@@ -14,6 +14,8 @@ import AgentDetailPage from './pages/AgentDetailPage.js';
 import CreateAgentPage from './pages/CreateAgentPage.js';
 import LiveDebatePage from './pages/LiveDebatePage.js';
 import ProfilePage from './pages/ProfilePage.js';
+import NewsPage from './pages/NewsPage.js';
+import OnboardingOverlay from './components/OnboardingOverlay.js';
 
 // ─── Theme Toggle ───
 
@@ -117,6 +119,9 @@ function AppContent() {
   const { t } = useTranslation();
   const { user } = useAuthContext();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem('agora_onboarding_done')
+  );
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -148,6 +153,7 @@ function AppContent() {
             { key: 'arena', label: t('nav.arena'), to: '/arena' },
             { key: 'market', label: t('nav.market'), to: '/market' },
             { key: 'quests', label: t('nav.quests'), to: '/quests' },
+            { key: 'news', label: `📰 ${t('nav.news')}`, to: '/news' },
           ].map((item) => (
             <li key={item.key}>
               <NavLink
@@ -187,9 +193,14 @@ function AppContent() {
           <Route path="/arena/:debateId" element={<DebateDetailPage />} />
           <Route path="/market" element={<MarketPage />} />
           <Route path="/quests" element={<QuestsPage />} />
+          <Route path="/news" element={<NewsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </main>
+
+      {showOnboarding && (
+        <OnboardingOverlay onClose={() => setShowOnboarding(false)} />
+      )}
     </>
   );
 }
