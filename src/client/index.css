@@ -4717,3 +4717,96 @@ a:hover {
     min-width: unset;
   }
 }
+
+/* =============================================
+   MarketPage — Stock Row Inline → CSS
+   ============================================= */
+.market-stock__name {
+  font-weight: 600;
+}
+.market-stock__meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.market-stock__price-change {
+  font-weight: 600;
+}
+.market-stock__price-change--up   { color: var(--success); }
+.market-stock__price-change--down { color: var(--danger); }
+.market-stock__price-change--flat { color: var(--text-muted); }
+
+/* =============================================
+   QuestsPage — Quest Cards & Filters
+   ============================================= */
+.quest-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.quest-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.quest-card__title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.quest-card__icon {
+  font-size: 1.25rem;
+}
+.quest-card__title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+.quest-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.quest-card__reward {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--tier-gold);
+  font-size: 0.875rem;
+}
+.quest-card__desc {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.quest-card__date {
+  margin-top: 8px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Quest Status Badge */
+.quest-badge {
+  padding: 3px 10px;
+  border-radius: var(--radius-xl);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.quest-badge--active,
+.quest-badge--open {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+.quest-badge--completed {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent-primary);
+}
+.quest-badge--closed {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--text-muted);
+}

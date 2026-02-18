@@ -141,26 +141,8 @@ export default function QuestsPage() {
 
   function statusBadge(status: string) {
     const statusLabel = t(`quests.status.${status}`, { defaultValue: status });
-    const colors: Record<string, { bg: string; text: string }> = {
-      active: { bg: 'rgba(16, 185, 129, 0.1)', text: 'var(--success)' },
-      open: { bg: 'rgba(16, 185, 129, 0.1)', text: 'var(--success)' },
-      closed: { bg: 'rgba(107, 114, 128, 0.1)', text: 'var(--text-muted)' },
-      completed: { bg: 'rgba(99, 102, 241, 0.1)', text: 'var(--accent-primary)' },
-    };
-    const style = colors[status] || colors.active;
     return (
-      <span
-        style={{
-          padding: '3px 10px',
-          borderRadius: 'var(--radius-xl)',
-          fontSize: '0.7rem',
-          fontWeight: 600,
-          background: style.bg,
-          color: style.text,
-          textTransform: 'uppercase',
-          letterSpacing: '0.03em',
-        }}
-      >
+      <span className={`quest-badge quest-badge--${status}`}>
         {statusLabel}
       </span>
     );
@@ -176,7 +158,7 @@ export default function QuestsPage() {
       </div>
 
       {/* ─── Filter ─── */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+      <div className="quest-filters">
         {[
           { key: 'all' as const, label: t('quests.filters.all') },
           { key: 'daily' as const, label: t('quests.filters.daily') },
@@ -203,7 +185,7 @@ export default function QuestsPage() {
           <p>{t('quests.messages.quest_hint')}</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="quest-list">
           {quests.map((quest) => {
             const questKey = QUEST_TITLE_MAP[quest.title];
             const title = questKey ? t(`quests.items.${questKey}.title`) : quest.title;
@@ -218,33 +200,19 @@ export default function QuestsPage() {
                 key={quest.id}
                 className={`card${isAlreadyClaimed ? ' quest-card--completed' : ''}`}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'start',
-                    marginBottom: 8,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: '1.25rem' }}>{quest.type === 'daily' ? '🎯' : '💰'}</span>
-                    <h3 style={{ fontWeight: 700, fontSize: '1rem' }}>{title}</h3>
+                <div className="quest-card__header">
+                  <div className="quest-card__title-group">
+                    <span className="quest-card__icon">{quest.type === 'daily' ? '🎯' : '💰'}</span>
+                    <h3 className="quest-card__title">{title}</h3>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="quest-card__meta">
                     {statusBadge(quest.status)}
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontWeight: 700,
-                        color: 'var(--tier-gold)',
-                        fontSize: '0.875rem',
-                      }}
-                    >
+                    <span className="quest-card__reward">
                       {quest.reward_gold.toLocaleString()} G
                     </span>
                   </div>
                 </div>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                <p className="quest-card__desc">
                   {description}
                 </p>
 
@@ -268,7 +236,7 @@ export default function QuestsPage() {
                   </button>
                 )}
 
-                <div style={{ marginTop: 8, fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                <div className="quest-card__date">
                   {new Date(quest.created_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US', {
                     month: 'short',
                     day: 'numeric',

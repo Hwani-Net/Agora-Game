@@ -49,11 +49,7 @@ export default function MarketPage() {
     loadData();
   }, [loadData]);
 
-  function priceChangeColor(change: number): string {
-    if (change > 0) return 'var(--success)';
-    if (change < 0) return 'var(--danger)';
-    return 'var(--text-muted)';
-  }
+
 
   function priceChangePrefix(change: number): string {
     return change > 0 ? '+' : '';
@@ -243,10 +239,10 @@ export default function MarketPage() {
                 className="card market-stock-row"
               >
                 <div>
-                  <div style={{ fontWeight: 600 }}>
+                  <div className="market-stock__name">
                     🤖 {stock.agent_name || `Agent #${stock.agent_id.slice(0, 8)}`}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  <div className="market-stock__meta">
                     {stock.total_shares.toLocaleString()} {t('market.list.shares_unit')}
                     {owned > 0 && (
                       <span className="owned-badge">
@@ -260,8 +256,7 @@ export default function MarketPage() {
                   {Math.round(stock.current_price).toLocaleString()} G
                 </div>
                 <div
-                  className="market-cell-mono"
-                  style={{ color: priceChangeColor(stock.price_change_24h), fontWeight: 600 }}
+                  className={`market-cell-mono market-stock__price-change ${stock.price_change_24h > 0 ? 'market-stock__price-change--up' : stock.price_change_24h < 0 ? 'market-stock__price-change--down' : 'market-stock__price-change--flat'}`}
                 >
                   {priceChangePrefix(stock.price_change_24h)}
                   {stock.price_change_24h.toFixed(1)}%
